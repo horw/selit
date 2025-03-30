@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Selit - Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Selit Clipboard Monitor Dashboard</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    Welcome to Selit, your smart clipboard monitor that enhances your clipboard with AI!
+                </p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Current Settings</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>API Key:</strong> {% if api_key %}{{ api_key[:5] }}...{{ api_key[-5:] if api_key|length > 10 else '' }}{% else %}Not configured{% endif %}</p>
+                                <p><strong>Trigger Word:</strong> {{ trigger_word }}</p>
+                                <a href="{{ url_for('settings') }}" class="btn btn-primary">Manage Settings</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Prompts</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Active Prompts:</strong> {{ prompts|length }}</p>
+                                <ul class="list-group mb-3">
+                                    {% for window_id in prompts|sort %}
+                                    <li class="list-group-item">{{ window_id }}</li>
+                                    {% else %}
+                                    <li class="list-group-item">No prompts configured</li>
+                                    {% endfor %}
+                                </ul>
+                                <a href="{{ url_for('prompts') }}" class="btn btn-primary">Manage Prompts</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>How to Use</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>To use Selit:</p>
+                                <ol>
+                                    <li>Make sure your API key is configured</li>
+                                    <li>Set up prompts for specific applications</li>
+                                    <li>Copy text from any application</li>
+                                    <li>If the text starts with your trigger word ("{{ trigger_word }}"), Selit will process it with AI</li>
+                                    <li>The AI-generated text will replace your clipboard content</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

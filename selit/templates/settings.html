@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Selit - Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header">
+                <h2>Settings</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('settings') }}">
+                    {{ form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        <label for="api_key" class="form-label">{{ form.api_key.label }}</label>
+                        {{ form.api_key(class="form-control", placeholder="Enter your Gemini API key") }}
+                        {% if form.api_key.errors %}
+                            <div class="text-danger">
+                                {% for error in form.api_key.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            You can get your API key from <a href="https://ai.google.dev/" target="_blank">Google AI Studio</a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="trigger_word" class="form-label">{{ form.trigger_word.label }}</label>
+                        {{ form.trigger_word(class="form-control", placeholder="Enter trigger word") }}
+                        {% if form.trigger_word.errors %}
+                            <div class="text-danger">
+                                {% for error in form.trigger_word.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            The trigger word will be used to identify when to process clipboard content with AI
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Selit - Manage Prompts{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2>Manage Prompts</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    Create custom prompts for specific applications. When you copy text from an application that matches
+                    one of these window identifiers, the custom prompt will be used for AI processing.
+                </p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4>Add New Prompt</h4>
+                                <button type="button" class="btn btn-info" id="refreshWindowsBtn">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh Windows
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ url_for('add_prompt') }}">
+                                    {{ prompt_form.csrf_token }}
+                                    
+                                    <div class="mb-3">
+                                        <label for="window_identifier" class="form-label">{{ prompt_form.window_identifier.label }}</label>
+                                        {{ prompt_form.window_identifier(class="form-control", placeholder="e.g., WeChat, Notepad, Chrome") }}
+                                        {% if prompt_form.window_identifier.errors %}
+                                            <div class="text-danger">
+                                                {% for error in prompt_form.window_identifier.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            The name or part of the window title of the application
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="current_windows" class="form-label">Current Open Windows</label>
+                                        <div class="input-group">
+                                            <input type="text" id="windowSearch" class="form-control" placeholder="Search windows...">
+                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">Clear</button>
+                                        </div>
+                                        <div class="mt-2 mb-2">
+                                            <div class="card">
+                                                <div class="card-body p-0">
+                                                    <div class="list-group" id="windowsList" style="max-height: 300px; overflow-y: auto;">
+                                                        <div class="d-flex justify-content-center p-3">
+                                                            <div class="spinner-border text-primary" role="status">
+                                                                <span class="visually-hidden">Loading...</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-text">
+                                            Click on a window to use it as the identifier
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="prompt_text" class="form-label">{{ prompt_form.prompt_text.label }}</label>
+                                        {{ prompt_form.prompt_text(class="form-control", rows=5, placeholder="Enter prompt template...") }}
+                                        {% if prompt_form.prompt_text.errors %}
+                                            <div class="text-danger">
+                                                {% for error in prompt_form.prompt_text.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            This template will be used when processing text from this application.
+                                            You can use {text} to represent the user's input.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        {{ prompt_form.submit(class="btn btn-primary") }}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Existing Prompts</h4>
+                            </div>
+                            <div class="card-body">
+                                {% if prompts %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Window Identifier</th>
+                                                    <th>Prompt Template</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for window_id, prompt_text in prompts.items() %}
+                                                <tr>
+                                                    <td>{{ window_id }}</td>
+                                                    <td>
+                                                        <div class="text-truncate" style="max-width: 400px;">
+                                                            {{ prompt_text }}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a href="{{ url_for('edit_prompt', window_id=window_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                                            <form method="POST" action="{{ url_for('delete_prompt') }}" class="d-inline">
+                                                                {{ delete_form.csrf_token }}
+                                                                {{ delete_form.window_identifier(value=window_id) }}
+                                                                {{ delete_form.submit(class="btn btn-sm btn-danger", onclick="return confirm('Are you sure you want to delete this prompt?')") }}
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        No prompts have been configured yet. Add your first prompt above!
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const windowsList = document.getElementById('windowsList');
+        const windowIdentifierInput = document.getElementById('window_identifier');
+        const windowSearch = document.getElementById('windowSearch');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const refreshWindowsBtn = document.getElementById('refreshWindowsBtn');
+        
+        let allWindows = [];
+        
+        // Function to fetch windows from the server
+        function fetchWindows() {
+            windowsList.innerHTML = `
+                <div class="d-flex justify-content-center p-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            fetch('/api/windows')
+                .then(response => response.json())
+                .then(data => {
+                    allWindows = data;
+                    renderWindowsList(allWindows);
+                })
+                .catch(error => {
+                    windowsList.innerHTML = `
+                        <div class="alert alert-danger m-2">
+                            Error loading windows: ${error.message}
+                        </div>
+                    `;
+                });
+        }
+        
+        // Function to render the windows list
+        function renderWindowsList(windows) {
+            if (windows.length === 0) {
+                windowsList.innerHTML = `
+                    <div class="alert alert-info m-2">
+                        No windows found.
+                    </div>
+                `;
+                return;
+            }
+            
+            windowsList.innerHTML = '';
+            
+            windows.forEach(window => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action';
+                item.innerHTML = `
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${window.title}</h6>
+                        <small>${window.process_name}</small>
+                    </div>
+                `;
+                
+                item.addEventListener('click', function() {
+                    windowIdentifierInput.value = window.title;
+                });
+                
+                windowsList.appendChild(item);
+            });
+        }
+        
+        // Search functionality
+        windowSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            if (!searchTerm) {
+                renderWindowsList(allWindows);
+                return;
+            }
+            
+            const filteredWindows = allWindows.filter(window => 
+                window.title.toLowerCase().includes(searchTerm) || 
+                window.process_name.toLowerCase().includes(searchTerm)
+            );
+            
+            renderWindowsList(filteredWindows);
+        });
+        
+        // Clear search
+        clearSearchBtn.addEventListener('click', function() {
+            windowSearch.value = '';
+            renderWindowsList(allWindows);
+        });
+        
+        // Refresh windows list
+        refreshWindowsBtn.addEventListener('click', fetchWindows);
+        
+        // Initial fetch
+        fetchWindows();
+    });
+</script>
+{% endblock %}

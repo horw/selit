@@ -443,6 +443,11 @@ def main():
     config_parser.add_argument('action', choices=['show', 'api-key', 'trigger-word'], help='Configuration action to perform')
     config_parser.add_argument('value', nargs='?', help='Value for the configuration (if applicable)')
     
+    web_parser = subparsers.add_parser('web', help='Launch the web interface')
+    web_parser.add_argument('--host', default="127.0.0.1", help='Host to bind the web server to')
+    web_parser.add_argument('--port', type=int, default=5000, help='Port to run the web server on')
+    web_parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+
     args = parser.parse_args()
     
     prompt_manager = PromptManager()
@@ -459,6 +464,12 @@ def main():
         prompt_manager.remove_prompt(args.identifier)
     elif args.command == 'config':
         config_command(args)
+    elif args.command == 'web':
+        # Import web module here to avoid circular imports
+        from selit.web import run_web_server
+        print(f"Starting web interface at http://{args.host}:{args.port}")
+        print("Press Ctrl+C to stop the server")
+        run_web_server(host=args.host, port=args.port, debug=args.debug)
     else:
         parser.print_help()
 

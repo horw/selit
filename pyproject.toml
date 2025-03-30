@@ -9,6 +9,8 @@ dependencies = [
     "pyperclip",
     "psutil",
     "requests",
+    "flask",
+    "flask-wtf",
 ]
 authors = [
     {name = "Igor Udot"}
