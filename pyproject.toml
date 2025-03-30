@@ -1,0 +1,27 @@
+[project]
+name = "selit"
+version = "0.1.0"
+description = "A clipboard monitoring tool that tracks which window is using the clipboard"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pywin32",
+    "pyperclip",
+    "psutil",
+    "requests",
+]
+authors = [
+    {name = "Igor Udot"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+]
+
+[project.scripts]
+selit = "selit.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
