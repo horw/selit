@@ -8,7 +8,7 @@
         <div class="card">
             <div class="card-body p-4 text-center">
                 <div class="d-inline-block mb-3">
-                    <i class="bi bi-magic feature-icon mb-3" style="font-size: 3rem;"></i>
+                    <i class="bi bi-magic feature-icon mb-3 text-primary" style="font-size: 3rem;"></i>
                 </div>
                 <h1 class="display-5 fw-bold">Welcome to Select it!</h1>
                 <p class="lead col-lg-8 mx-auto">
@@ -30,45 +30,51 @@
 <div class="row g-4 mb-4">
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-body stat-card">
-                <i class="bi bi-key-fill feature-icon"></i>
-                <h5 class="stat-label">API Key</h5>
-                <p class="stat-value">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-key-fill feature-icon me-3 text-primary"></i>
+                    <h5 class="mb-0">API Key</h5>
+                </div>
+                <hr>
+                <div class="text-center mt-3">
                     {% if api_key %}
-                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Configured</p>
                     {% else %}
-                        <i class="bi bi-x-circle-fill text-danger"></i>
+                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Not Configured</p>
                     {% endif %}
-                </p>
-                <p class="mb-0">
-                    {% if api_key %}
-                        Configured
-                    {% else %}
-                        Not Configured
-                    {% endif %}
-                </p>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-body stat-card">
-                <i class="bi bi-lightning-fill feature-icon"></i>
-                <h5 class="stat-label">Trigger Word</h5>
-                <p class="stat-value">
-                    <span class="badge bg-primary">{{ trigger_word }}</span>
-                </p>
-                <p class="mb-0">Start your text with this word</p>
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-lightning-fill feature-icon me-3 text-primary"></i>
+                    <h5 class="mb-0">Trigger Word</h5>
+                </div>
+                <hr>
+                <div class="text-center mt-3">
+                    <span class="badge bg-primary p-2" style="font-size: 1.1rem;">{{ trigger_word }}</span>
+                    <p class="mt-2 mb-0">Start your text with this word</p>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card h-100">
-            <div class="card-body stat-card">
-                <i class="bi bi-chat-square-text-fill feature-icon"></i>
-                <h5 class="stat-label">Prompts</h5>
-                <p class="stat-value">{{ prompts|length }}</p>
-                <p class="mb-0">Active custom prompts</p>
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-chat-square-text-fill feature-icon me-3 text-primary"></i>
+                    <h5 class="mb-0">Prompts</h5>
+                </div>
+                <hr>
+                <div class="text-center mt-3">
+                    <span style="font-size: 2rem; font-weight: 700;">{{ prompts|length }}</span>
+                    <p class="mt-2 mb-0">Active custom prompts</p>
+                </div>
             </div>
         </div>
     </div>
@@ -77,45 +83,46 @@
 <div class="row mb-4">
     <div class="col-md-7">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>How to Use</h4>
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-info-circle me-2 text-primary"></i>
+                <h4 class="mb-0">How to Use</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="steps">
-                    <div class="step d-flex mb-3">
+                    <div class="step d-flex mb-4">
                         <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">1</span>
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">1</span>
                         </div>
                         <div>
                             <h5>Configure API Key</h5>
-                            <p>Set up your Gemini API key in the settings page</p>
+                            <p class="text-muted mb-0">Set up your Gemini API key in the settings page</p>
                         </div>
                     </div>
-                    <div class="step d-flex mb-3">
+                    <div class="step d-flex mb-4">
                         <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">2</span>
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">2</span>
                         </div>
                         <div>
                             <h5>Set Up Prompts</h5>
-                            <p>Create custom prompts for specific applications</p>
+                            <p class="text-muted mb-0">Create custom prompts for specific applications</p>
                         </div>
                     </div>
-                    <div class="step d-flex mb-3">
+                    <div class="step d-flex mb-4">
                         <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">3</span>
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">3</span>
                         </div>
                         <div>
                             <h5>Copy Text</h5>
-                            <p>Copy text starting with "{{ trigger_word }}" from any application</p>
+                            <p class="text-muted mb-0">Copy text starting with "{{ trigger_word }}" from any application</p>
                         </div>
                     </div>
                     <div class="step d-flex">
                         <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">4</span>
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">4</span>
                         </div>
                         <div>
                             <h5>Get AI-Enhanced Results</h5>
-                            <p>The AI-generated text will automatically replace your clipboard content</p>
+                            <p class="text-muted mb-0">The AI-generated text will automatically replace your clipboard content</p>
                         </div>
                     </div>
                 </div>
@@ -125,24 +132,25 @@
     
     <div class="col-md-5">
         <div class="card h-100">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="bi bi-list-check me-2"></i>Active Prompts</h4>
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-list-check me-2 text-primary"></i>
+                <h4 class="mb-0">Active Prompts</h4>
             </div>
             <div class="card-body p-0">
-                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto; border-radius: 0;">
                     {% for window_id in prompts|sort %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="list-group-item d-flex justify-content-between align-items-center border-start-0 border-end-0">
                             <div>
-                                <i class="bi bi-window me-2"></i> {{ window_id }}
+                                <i class="bi bi-window me-2 text-primary"></i> {{ window_id }}
                             </div>
                             <a href="{{ url_for('edit_prompt', window_id=window_id) }}" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         </div>
                     {% else %}
-                        <div class="list-group-item text-center py-5">
-                            <i class="bi bi-chat-square-text" style="font-size: 2rem; opacity: 0.3;"></i>
-                            <p class="mt-3">No prompts configured yet</p>
+                        <div class="list-group-item text-center py-5 border-0">
+                            <i class="bi bi-chat-square-text text-muted" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="mt-3 text-muted">No prompts configured yet</p>
                             <a href="{{ url_for('prompts') }}" class="btn btn-sm btn-primary">Add Your First Prompt</a>
                         </div>
                     {% endfor %}
@@ -155,30 +163,31 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="bi bi-stars me-2"></i>Tips for Better Results</h4>
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-stars me-2 text-primary"></i>
+                <h4 class="mb-0">Tips for Better Results</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <div class="row g-4">
                     <div class="col-md-4">
                         <div class="text-center">
-                            <i class="bi bi-pencil-square feature-icon"></i>
-                            <h5>Be Specific</h5>
-                            <p>The more specific your prompt, the better the AI response will be</p>
+                            <i class="bi bi-pencil-square text-primary" style="font-size: 1.8rem;"></i>
+                            <h5 class="mt-3">Be Specific</h5>
+                            <p class="text-muted">The more specific your prompt, the better the AI response will be</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="text-center">
-                            <i class="bi bi-sliders feature-icon"></i>
-                            <h5>Customize Prompts</h5>
-                            <p>Create different prompts for different applications</p>
+                            <i class="bi bi-sliders text-primary" style="font-size: 1.8rem;"></i>
+                            <h5 class="mt-3">Customize Prompts</h5>
+                            <p class="text-muted">Create different prompts for different applications</p>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="text-center">
-                            <i class="bi bi-magic feature-icon"></i>
-                            <h5>Use AI Assistance</h5>
-                            <p>Try the AI prompt generator for better templates</p>
+                            <i class="bi bi-magic text-primary" style="font-size: 1.8rem;"></i>
+                            <h5 class="mt-3">Use AI Assistance</h5>
+                            <p class="text-muted">Try the AI prompt generator for better templates</p>
                         </div>
                     </div>
                 </div>
