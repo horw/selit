@@ -71,6 +71,22 @@
                         </div>
                     </div>
                     
+                    <div class="mb-3">
+                        <label for="context_for_ai" class="form-label">Generate Prompt with AI</label>
+                        <div class="input-group">
+                            <textarea id="context_for_ai" class="form-control" rows="3" 
+                                     placeholder="Describe what kind of responses you want from AI for this window..."></textarea>
+                            <button class="btn btn-outline-primary" type="button" id="generatePromptBtn">
+                                <i class="bi bi-magic"></i> Generate
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            Describe the context and what kind of responses you want from AI for this application.
+                            AI will suggest a prompt template based on your description.
+                        </div>
+                        <div id="aiGenerateStatus" class="mt-2" style="display: none;"></div>
+                    </div>
+                    
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{{ url_for('prompts') }}" class="btn btn-secondary me-md-2">Cancel</a>
                         {{ form.submit(class="btn btn-primary") }}
@@ -90,6 +106,10 @@
         const windowSearch = document.getElementById('windowSearch');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshWindowsBtn = document.getElementById('refreshWindowsBtn');
+        const generatePromptBtn = document.getElementById('generatePromptBtn');
+        const contextForAI = document.getElementById('context_for_ai');
+        const promptTextInput = document.getElementById('prompt_text');
+        const aiGenerateStatus = document.getElementById('aiGenerateStatus');
         
         let allWindows = [];
         
@@ -175,6 +195,44 @@
         
         // Refresh windows list
         refreshWindowsBtn.addEventListener('click', fetchWindows);
+        
+        // Generate prompt with AI
+        generatePromptBtn.addEventListener('click', function() {
+            const context = contextForAI.value.trim();
+            const windowId = windowIdentifierInput.value.trim();
+            
+            if (!context) {
+                aiGenerateStatus.innerHTML = 'Please provide a context for AI to generate a prompt.';
+                aiGenerateStatus.style.display = 'block';
+                return;
+            }
+            
+            aiGenerateStatus.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Generating prompt...';
+            aiGenerateStatus.style.display = 'block';
+            
+            fetch('/api/generate-prompt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    context: context,
+                    window_identifier: windowId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    promptTextInput.value = data.prompt;
+                    aiGenerateStatus.innerHTML = '<div class="alert alert-success">Prompt generated successfully!</div>';
+                } else {
+                    aiGenerateStatus.innerHTML = '<div class="alert alert-danger">Error: ' + data.message + '</div>';
+                }
+            })
+            .catch(error => {
+                aiGenerateStatus.innerHTML = '<div class="alert alert-danger">Error generating prompt: ' + error.message + '</div>';
+            });
+        });
         
         // Initial fetch
         fetchWindows();

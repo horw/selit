@@ -7,7 +7,7 @@ import win32gui
 import win32process
 import psutil
 
-from selit.main import ConfigManager, PromptManager, get_app_data_dir
+from selit.main import ConfigManager, PromptManager, GeminiAPI
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -137,6 +137,54 @@ def get_windows():
     """API endpoint to get all open windows."""
     windows = get_all_windows()
     return jsonify(windows)
+
+@app.route('/api/generate-prompt', methods=['POST'])
+def generate_prompt():
+    """Generate a prompt template using AI based on user context."""
+    data = request.json
+    context = data.get('context', '')
+    window_identifier = data.get('window_identifier', '')
+    
+    if not context:
+        return jsonify({
+            'success': False,
+            'message': 'Context is required'
+        }), 400
+    
+    try:
+        gemini_api = GeminiAPI()
+        
+        # Prepare the system prompt for generating a template
+        system_prompt = f"""
+        I need to create a prompt template for Gemini AI. Here's the context:
+        
+        - Application/Window: {window_identifier}
+        - Context: {context}
+        
+        Please generate a well-structured prompt template that I can use for this application.
+        The template should include placeholder {{text}} where the user's input will be inserted.
+        Make the prompt clear, specific, and optimized for good AI responses.
+        
+        Return ONLY the prompt template text without any explanations or additional text.
+        """
+        
+        result = gemini_api.generate_text(system_prompt)
+        
+        if result:
+            return jsonify({
+                'success': True,
+                'prompt': result
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to generate prompt template'
+            }), 500
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error: {str(e)}'
+        }), 500
 
 def run_web_server(host='127.0.0.1', port=5000, debug=False):
     """Run the web server for the UI."""
