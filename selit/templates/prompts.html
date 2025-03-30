@@ -3,11 +3,12 @@
 {% block title %}Selit - Manage Prompts{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row mb-4">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header">
-                <h2>Manage Prompts</h2>
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-chat-left-text feature-icon me-2" style="font-size: 1.4rem;"></i>
+                <h2 class="mb-0">Prompt Management</h2>
             </div>
             <div class="card-body">
                 <p class="lead">
@@ -16,91 +17,117 @@
                 </p>
                 
                 <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
+                    <div class="col-lg-12">
+                        <div class="card border-0 shadow-sm">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h4>Add New Prompt</h4>
-                                <button type="button" class="btn btn-info" id="refreshWindowsBtn">
-                                    <i class="bi bi-arrow-clockwise"></i> Refresh Windows
+                                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add New Prompt</h4>
+                                <button type="button" class="btn btn-primary" id="refreshWindowsBtn">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh Windows
                                 </button>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-4">
                                 <form method="POST" action="{{ url_for('add_prompt') }}">
                                     {{ prompt_form.csrf_token }}
                                     
-                                    <div class="mb-3">
-                                        <label for="window_identifier" class="form-label">{{ prompt_form.window_identifier.label }}</label>
-                                        {{ prompt_form.window_identifier(class="form-control", placeholder="e.g., WeChat, Notepad, Chrome") }}
-                                        {% if prompt_form.window_identifier.errors %}
-                                            <div class="text-danger">
-                                                {% for error in prompt_form.window_identifier.errors %}
-                                                    {{ error }}
-                                                {% endfor %}
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <label for="window_identifier" class="form-label fw-semibold">
+                                                <i class="bi bi-window me-2"></i>{{ prompt_form.window_identifier.label }}
+                                            </label>
+                                            {{ prompt_form.window_identifier(class="form-control", placeholder="e.g., WeChat, Notepad, Chrome") }}
+                                            {% if prompt_form.window_identifier.errors %}
+                                                <div class="text-danger mt-2">
+                                                    {% for error in prompt_form.window_identifier.errors %}
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <div class="form-text mt-2">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                The name or part of the window title of the application
                                             </div>
-                                        {% endif %}
-                                        <div class="form-text">
-                                            The name or part of the window title of the application
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <label for="current_windows" class="form-label fw-semibold">
+                                                <i class="bi bi-list me-2"></i>Current Open Windows
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="text" id="windowSearch" class="form-control" placeholder="Search windows...">
+                                                <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     
-                                    <div class="mb-3">
-                                        <label for="current_windows" class="form-label">Current Open Windows</label>
-                                        <div class="input-group">
-                                            <input type="text" id="windowSearch" class="form-control" placeholder="Search windows...">
-                                            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">Clear</button>
-                                        </div>
-                                        <div class="mt-2 mb-2">
-                                            <div class="card">
-                                                <div class="card-body p-0">
-                                                    <div class="list-group" id="windowsList" style="max-height: 300px; overflow-y: auto;">
-                                                        <div class="d-flex justify-content-center p-3">
-                                                            <div class="spinner-border text-primary" role="status">
-                                                                <span class="visually-hidden">Loading...</span>
-                                                            </div>
+                                    <div class="mb-4">
+                                        <div class="card">
+                                            <div class="card-body p-0">
+                                                <div class="list-group" id="windowsList" style="max-height: 250px; overflow-y: auto; border-radius: var(--card-border-radius);">
+                                                    <div class="d-flex justify-content-center p-4">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="form-text">
+                                        <div class="form-text mt-2">
+                                            <i class="bi bi-cursor me-1"></i>
                                             Click on a window to use it as the identifier
                                         </div>
                                     </div>
                                     
-                                    <div class="mb-3">
-                                        <label for="prompt_text" class="form-label">{{ prompt_form.prompt_text.label }}</label>
+                                    <div class="mb-4">
+                                        <label for="prompt_text" class="form-label fw-semibold">
+                                            <i class="bi bi-chat-text me-2"></i>{{ prompt_form.prompt_text.label }}
+                                        </label>
                                         {{ prompt_form.prompt_text(class="form-control", rows=5, placeholder="Enter prompt template...") }}
                                         {% if prompt_form.prompt_text.errors %}
-                                            <div class="text-danger">
+                                            <div class="text-danger mt-2">
                                                 {% for error in prompt_form.prompt_text.errors %}
-                                                    {{ error }}
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
                                                 {% endfor %}
                                             </div>
                                         {% endif %}
-                                        <div class="form-text">
+                                        <div class="form-text mt-2">
+                                            <i class="bi bi-info-circle me-1"></i>
                                             This template will be used when processing text from this application.
-                                            You can use {text} to represent the user's input.
+                                            You can use <code>{text}</code> to represent the user's input.
                                         </div>
                                     </div>
                                     
-                                    <div class="mb-3">
-                                        <label for="context_for_ai" class="form-label">Generate Prompt with AI</label>
-                                        <div class="input-group">
-                                            <textarea id="context_for_ai" class="form-control" rows="3" 
-                                                      placeholder="Describe what kind of responses you want from AI for this window..."></textarea>
-                                            <button class="btn btn-outline-primary" type="button" id="generatePromptBtn">
-                                                <i class="bi bi-magic"></i> Generate
-                                            </button>
+                                    <div class="card bg-light mb-4">
+                                        <div class="card-body">
+                                            <h5 class="mb-3">
+                                                <i class="bi bi-magic me-2"></i>AI-Assisted Prompt Generation
+                                            </h5>
+                                            <div class="mb-3">
+                                                <label for="context_for_ai" class="form-label">Describe Your Needs</label>
+                                                <textarea id="context_for_ai" class="form-control" rows="3" 
+                                                          placeholder="Describe what kind of responses you want from AI for this window..."></textarea>
+                                                <div class="form-text mt-2">
+                                                    <i class="bi bi-lightbulb me-1"></i>
+                                                    Describe the context and what kind of responses you want from AI for this application.
+                                                </div>
+                                            </div>
+                                            <div class="d-grid gap-2 d-md-flex">
+                                                <button class="btn btn-primary" type="button" id="generatePromptBtn">
+                                                    <i class="bi bi-magic me-1"></i> Generate Prompt Template
+                                                </button>
+                                            </div>
+                                            <div id="aiGenerateStatus" class="mt-3" style="display: none;"></div>
                                         </div>
-                                        <div class="form-text">
-                                            Describe the context and what kind of responses you want from AI for this application.
-                                            AI will suggest a prompt template based on your description.
-                                        </div>
-                                        <div id="aiGenerateStatus" class="mt-2" style="display: none;"></div>
                                     </div>
                                     
                                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                        {{ prompt_form.submit(class="btn btn-primary") }}
+                                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">
+                                            <i class="bi bi-arrow-left"></i> Back
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> {{ prompt_form.submit.label.text }}
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -109,38 +136,53 @@
                 </div>
                 
                 <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Existing Prompts</h4>
+                    <div class="col-lg-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0"><i class="bi bi-list-check me-2"></i>Existing Prompts</h4>
+                                {% if prompts %}
+                                <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-speedometer2"></i> View Dashboard
+                                </a>
+                                {% endif %}
                             </div>
                             <div class="card-body">
                                 {% if prompts %}
                                     <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
+                                        <table class="table table-hover align-middle">
+                                            <thead class="table-light">
                                                 <tr>
                                                     <th>Window Identifier</th>
                                                     <th>Prompt Template</th>
-                                                    <th>Actions</th>
+                                                    <th class="text-end">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {% for window_id, prompt_text in prompts.items() %}
                                                 <tr>
-                                                    <td>{{ window_id }}</td>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="bi bi-window me-2"></i>
+                                                            <strong>{{ window_id }}</strong>
+                                                        </div>
+                                                    </td>
                                                     <td>
                                                         <div class="text-truncate" style="max-width: 400px;">
                                                             {{ prompt_text }}
                                                         </div>
                                                     </td>
-                                                    <td>
+                                                    <td class="text-end">
                                                         <div class="btn-group" role="group">
-                                                            <a href="{{ url_for('edit_prompt', window_id=window_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                                            <a href="{{ url_for('edit_prompt', window_id=window_id) }}" class="btn btn-sm btn-outline-primary">
+                                                                <i class="bi bi-pencil"></i> Edit
+                                                            </a>
                                                             <form method="POST" action="{{ url_for('delete_prompt') }}" class="d-inline">
                                                                 {{ delete_form.csrf_token }}
                                                                 {{ delete_form.window_identifier(value=window_id) }}
-                                                                {{ delete_form.submit(class="btn btn-sm btn-danger", onclick="return confirm('Are you sure you want to delete this prompt?')") }}
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger ms-2" 
+                                                                        onclick="return confirm('Are you sure you want to delete this prompt?')">
+                                                                    <i class="bi bi-trash"></i> Delete
+                                                                </button>
                                                             </form>
                                                         </div>
                                                     </td>
@@ -150,8 +192,10 @@
                                         </table>
                                     </div>
                                 {% else %}
-                                    <div class="alert alert-info">
-                                        No prompts have been configured yet. Add your first prompt above!
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-chat-square-text" style="font-size: 3rem; opacity: 0.3;"></i>
+                                        <h5 class="mt-3">No prompts configured yet</h5>
+                                        <p class="text-muted">Create your first prompt above to get started</p>
                                     </div>
                                 {% endif %}
                             </div>
@@ -167,13 +211,13 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const windowsList = document.getElementById('windowsList');
         const windowIdentifierInput = document.getElementById('window_identifier');
+        const windowsList = document.getElementById('windowsList');
         const windowSearch = document.getElementById('windowSearch');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshWindowsBtn = document.getElementById('refreshWindowsBtn');
-        const generatePromptBtn = document.getElementById('generatePromptBtn');
         const contextForAI = document.getElementById('context_for_ai');
+        const generatePromptBtn = document.getElementById('generatePromptBtn');
         const promptTextInput = document.getElementById('prompt_text');
         const aiGenerateStatus = document.getElementById('aiGenerateStatus');
         
@@ -182,7 +226,7 @@
         // Function to fetch windows from the server
         function fetchWindows() {
             windowsList.innerHTML = `
-                <div class="d-flex justify-content-center p-3">
+                <div class="d-flex justify-content-center p-4">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -197,7 +241,8 @@
                 })
                 .catch(error => {
                     windowsList.innerHTML = `
-                        <div class="alert alert-danger m-2">
+                        <div class="alert alert-danger m-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
                             Error loading windows: ${error.message}
                         </div>
                     `;
@@ -208,7 +253,8 @@
         function renderWindowsList(windows) {
             if (windows.length === 0) {
                 windowsList.innerHTML = `
-                    <div class="alert alert-info m-2">
+                    <div class="alert alert-info m-3">
+                        <i class="bi bi-info-circle me-2"></i>
                         No windows found.
                     </div>
                 `;
@@ -222,14 +268,19 @@
                 item.type = 'button';
                 item.className = 'list-group-item list-group-item-action';
                 item.innerHTML = `
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">${window.title}</h6>
-                        <small>${window.process_name}</small>
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-window me-2"></i>
+                            <span class="fw-medium">${window.title}</span>
+                        </div>
+                        <span class="badge bg-light text-dark">${window.process_name}</span>
                     </div>
                 `;
                 
                 item.addEventListener('click', function() {
                     windowIdentifierInput.value = window.title;
+                    item.classList.add('active');
+                    setTimeout(() => item.classList.remove('active'), 500);
                 });
                 
                 windowsList.appendChild(item);
@@ -268,12 +319,22 @@
             const windowId = windowIdentifierInput.value.trim();
             
             if (!context) {
-                aiGenerateStatus.innerHTML = 'Please provide a context for AI to generate a prompt.';
+                aiGenerateStatus.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Please provide a context for AI to generate a prompt.
+                    </div>
+                `;
                 aiGenerateStatus.style.display = 'block';
                 return;
             }
             
-            aiGenerateStatus.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Generating prompt...';
+            aiGenerateStatus.innerHTML = `
+                <div class="d-flex align-items-center text-primary">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    <span>Generating prompt template...</span>
+                </div>
+            `;
             aiGenerateStatus.style.display = 'block';
             
             fetch('/api/generate-prompt', {
@@ -290,13 +351,31 @@
             .then(data => {
                 if (data.success) {
                     promptTextInput.value = data.prompt;
-                    aiGenerateStatus.innerHTML = '<div class="alert alert-success">Prompt generated successfully!</div>';
+                    aiGenerateStatus.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Prompt generated successfully! You can edit it below.
+                        </div>
+                    `;
+                    promptTextInput.focus();
+                    promptTextInput.classList.add('border-success');
+                    setTimeout(() => promptTextInput.classList.remove('border-success'), 2000);
                 } else {
-                    aiGenerateStatus.innerHTML = '<div class="alert alert-danger">Error: ' + data.message + '</div>';
+                    aiGenerateStatus.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            Error: ${data.message}
+                        </div>
+                    `;
                 }
             })
             .catch(error => {
-                aiGenerateStatus.innerHTML = '<div class="alert alert-danger">Error generating prompt: ' + error.message + '</div>';
+                aiGenerateStatus.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Error generating prompt: ${error.message}
+                    </div>
+                `;
             });
         });
         

@@ -3,67 +3,182 @@
 {% block title %}Selit - Dashboard{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
+<div class="row mb-4">
+    <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h2>Selit Clipboard Monitor Dashboard</h2>
+            <div class="card-body p-4 text-center">
+                <div class="d-inline-block mb-3">
+                    <i class="bi bi-magic feature-icon mb-3" style="font-size: 3rem;"></i>
+                </div>
+                <h1 class="display-5 fw-bold">Welcome to Select it!</h1>
+                <p class="lead col-lg-8 mx-auto">
+                    Your smart clipboard assistant that enhances your text with AI
+                </p>
+                <div class="d-flex justify-content-center mt-3">
+                    <a href="{{ url_for('settings') }}" class="btn btn-primary me-2">
+                        <i class="bi bi-gear"></i> Configure Settings
+                    </a>
+                    <a href="{{ url_for('prompts') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-chat-left-text"></i> Manage Prompts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body stat-card">
+                <i class="bi bi-key-fill feature-icon"></i>
+                <h5 class="stat-label">API Key</h5>
+                <p class="stat-value">
+                    {% if api_key %}
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                    {% else %}
+                        <i class="bi bi-x-circle-fill text-danger"></i>
+                    {% endif %}
+                </p>
+                <p class="mb-0">
+                    {% if api_key %}
+                        Configured
+                    {% else %}
+                        Not Configured
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body stat-card">
+                <i class="bi bi-lightning-fill feature-icon"></i>
+                <h5 class="stat-label">Trigger Word</h5>
+                <p class="stat-value">
+                    <span class="badge bg-primary">{{ trigger_word }}</span>
+                </p>
+                <p class="mb-0">Start your text with this word</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body stat-card">
+                <i class="bi bi-chat-square-text-fill feature-icon"></i>
+                <h5 class="stat-label">Prompts</h5>
+                <p class="stat-value">{{ prompts|length }}</p>
+                <p class="mb-0">Active custom prompts</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>How to Use</h4>
             </div>
             <div class="card-body">
-                <p class="lead">
-                    Welcome to Selit, your smart clipboard monitor that enhances your clipboard with AI!
-                </p>
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Current Settings</h5>
-                            </div>
-                            <div class="card-body">
-                                <p><strong>API Key:</strong> {% if api_key %}{{ api_key[:5] }}...{{ api_key[-5:] if api_key|length > 10 else '' }}{% else %}Not configured{% endif %}</p>
-                                <p><strong>Trigger Word:</strong> {{ trigger_word }}</p>
-                                <a href="{{ url_for('settings') }}" class="btn btn-primary">Manage Settings</a>
-                            </div>
+                <div class="steps">
+                    <div class="step d-flex mb-3">
+                        <div class="step-icon me-3">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">1</span>
+                        </div>
+                        <div>
+                            <h5>Configure API Key</h5>
+                            <p>Set up your Gemini API key in the settings page</p>
                         </div>
                     </div>
-                    
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Prompts</h5>
-                            </div>
-                            <div class="card-body">
-                                <p><strong>Active Prompts:</strong> {{ prompts|length }}</p>
-                                <ul class="list-group mb-3">
-                                    {% for window_id in prompts|sort %}
-                                    <li class="list-group-item">{{ window_id }}</li>
-                                    {% else %}
-                                    <li class="list-group-item">No prompts configured</li>
-                                    {% endfor %}
-                                </ul>
-                                <a href="{{ url_for('prompts') }}" class="btn btn-primary">Manage Prompts</a>
-                            </div>
+                    <div class="step d-flex mb-3">
+                        <div class="step-icon me-3">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">2</span>
+                        </div>
+                        <div>
+                            <h5>Set Up Prompts</h5>
+                            <p>Create custom prompts for specific applications</p>
+                        </div>
+                    </div>
+                    <div class="step d-flex mb-3">
+                        <div class="step-icon me-3">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">3</span>
+                        </div>
+                        <div>
+                            <h5>Copy Text</h5>
+                            <p>Copy text starting with "{{ trigger_word }}" from any application</p>
+                        </div>
+                    </div>
+                    <div class="step d-flex">
+                        <div class="step-icon me-3">
+                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px;">4</span>
+                        </div>
+                        <div>
+                            <h5>Get AI-Enhanced Results</h5>
+                            <p>The AI-generated text will automatically replace your clipboard content</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>How to Use</h5>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-list-check me-2"></i>Active Prompts</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                    {% for window_id in prompts|sort %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-window me-2"></i> {{ window_id }}
                             </div>
-                            <div class="card-body">
-                                <p>To use Selit:</p>
-                                <ol>
-                                    <li>Make sure your API key is configured</li>
-                                    <li>Set up prompts for specific applications</li>
-                                    <li>Copy text from any application</li>
-                                    <li>If the text starts with your trigger word ("{{ trigger_word }}"), Selit will process it with AI</li>
-                                    <li>The AI-generated text will replace your clipboard content</li>
-                                </ol>
-                            </div>
+                            <a href="{{ url_for('edit_prompt', window_id=window_id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="list-group-item text-center py-5">
+                            <i class="bi bi-chat-square-text" style="font-size: 2rem; opacity: 0.3;"></i>
+                            <p class="mt-3">No prompts configured yet</p>
+                            <a href="{{ url_for('prompts') }}" class="btn btn-sm btn-primary">Add Your First Prompt</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-stars me-2"></i>Tips for Better Results</h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-pencil-square feature-icon"></i>
+                            <h5>Be Specific</h5>
+                            <p>The more specific your prompt, the better the AI response will be</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-sliders feature-icon"></i>
+                            <h5>Customize Prompts</h5>
+                            <p>Create different prompts for different applications</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-magic feature-icon"></i>
+                            <h5>Use AI Assistance</h5>
+                            <p>Try the AI prompt generator for better templates</p>
                         </div>
                     </div>
                 </div>

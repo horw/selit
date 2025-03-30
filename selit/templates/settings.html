@@ -6,50 +6,103 @@
 <div class="row">
     <div class="col-md-8 offset-md-2">
         <div class="card">
-            <div class="card-header">
-                <h2>Settings</h2>
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-gear-fill me-2 feature-icon" style="font-size: 1.4rem;"></i>
+                <h2 class="mb-0">Application Settings</h2>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
+                <p class="text-muted mb-4">
+                    Configure your API key and trigger word to customize how Selit works with your clipboard content.
+                </p>
+                
                 <form method="POST" action="{{ url_for('settings') }}">
                     {{ form.csrf_token }}
                     
-                    <div class="mb-3">
-                        <label for="api_key" class="form-label">{{ form.api_key.label }}</label>
-                        {{ form.api_key(class="form-control", placeholder="Enter your Gemini API key") }}
+                    <div class="mb-4">
+                        <label for="api_key" class="form-label fw-semibold">
+                            <i class="bi bi-key me-2"></i>{{ form.api_key.label }}
+                        </label>
+                        <div class="input-group mb-2">
+                            {{ form.api_key(class="form-control", placeholder="Enter your Gemini API key") }}
+                            <button class="btn btn-outline-secondary" type="button" id="toggleApiKey">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
                         {% if form.api_key.errors %}
                             <div class="text-danger">
                                 {% for error in form.api_key.errors %}
-                                    {{ error }}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
                         <div class="form-text">
-                            You can get your API key from <a href="https://ai.google.dev/" target="_blank">Google AI Studio</a>
+                            <i class="bi bi-info-circle me-1"></i>
+                            Get your API key from <a href="https://ai.google.dev/" target="_blank" class="text-decoration-none">Google AI Studio <i class="bi bi-box-arrow-up-right"></i></a>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="trigger_word" class="form-label">{{ form.trigger_word.label }}</label>
+                    <div class="mb-4">
+                        <label for="trigger_word" class="form-label fw-semibold">
+                            <i class="bi bi-lightning me-2"></i>{{ form.trigger_word.label }}
+                        </label>
                         {{ form.trigger_word(class="form-control", placeholder="Enter trigger word") }}
                         {% if form.trigger_word.errors %}
                             <div class="text-danger">
                                 {% for error in form.trigger_word.errors %}
-                                    {{ error }}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
                         <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
                             The trigger word will be used to identify when to process clipboard content with AI
                         </div>
                     </div>
                     
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3"><i class="bi bi-lightbulb me-2"></i>How It Works</h5>
+                            <ol class="mb-0">
+                                <li class="mb-2">Enter your Gemini API key to enable AI processing</li>
+                                <li class="mb-2">Set a trigger word that will activate the AI (e.g., "ai", "process", etc.)</li>
+                                <li>When you copy text that starts with your trigger word, Selit will automatically process it with AI</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancel</a>
-                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> {{ form.submit.label.text }}
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiKeyInput = document.getElementById('api_key');
+        const toggleButton = document.getElementById('toggleApiKey');
+        
+        if (apiKeyInput && toggleButton) {
+            toggleButton.addEventListener('click', function() {
+                const type = apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                apiKeyInput.setAttribute('type', type);
+                toggleButton.innerHTML = type === 'password' ? 
+                    '<i class="bi bi-eye"></i>' : 
+                    '<i class="bi bi-eye-slash"></i>';
+            });
+            
+            // Default to password type for security
+            apiKeyInput.setAttribute('type', 'password');
+        }
+    });
+</script>
 {% endblock %}
