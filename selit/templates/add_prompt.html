@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Select it! - Edit Prompt{% endblock %}
+{% block title %}Select it! - Add New Prompt{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-10 offset-md-1">
         <div class="card">
             <div class="card-header d-flex align-items-center">
-                <i class="bi bi-pencil-square feature-icon me-2" style="font-size: 1.4rem;"></i>
-                <h2 class="mb-0">Edit Prompt - {{ window_id }}</h2>
+                <i class="bi bi-plus-circle feature-icon me-2" style="font-size: 1.4rem;"></i>
+                <h2 class="mb-0">Add New Prompt</h2>
             </div>
             <div class="card-body p-4">
                 <!-- Progress Steps -->
@@ -20,21 +20,21 @@
                         </div>
                         <div class="step-item" id="step-2-indicator">
                             <div class="step-counter">2</div>
-                            <div class="step-name">Edit Prompt</div>
+                            <div class="step-name">Create Prompt</div>
                         </div>
                     </div>
                 </div>
                 
-                <form method="POST" action="{{ url_for('update_prompt', window_id=window_id) }}" id="promptForm">
+                <form method="POST" action="{{ url_for('add_prompt') }}" id="promptForm">
                     {{ form.csrf_token }}
                     
                     <!-- Step 1: Select Window -->
                     <div id="step-1-content">
                         <div class="mb-4">
-                            <h4 class="mb-3"><i class="bi bi-window me-2"></i>Update Application Window</h4>
+                            <h4 class="mb-3"><i class="bi bi-window me-2"></i>Select Application Window</h4>
                             <p class="text-muted mb-4">
-                                You're editing the prompt for <strong>"{{ window_id }}"</strong>. You can keep the same window 
-                                identifier or select a different one.
+                                Choose which application this prompt will be used for. When you copy text from an application
+                                that matches this window identifier, your custom prompt will be applied.
                             </p>
                             
                             <div class="d-flex justify-content-end mb-3">
@@ -100,12 +100,12 @@
                         </div>
                     </div>
                     
-                    <!-- Step 2: Edit Prompt -->
+                    <!-- Step 2: Create Prompt -->
                     <div id="step-2-content" style="display: none;">
                         <div class="mb-4">
-                            <h4 class="mb-3"><i class="bi bi-chat-text me-2"></i>Edit Prompt Template</h4>
+                            <h4 class="mb-3"><i class="bi bi-chat-text me-2"></i>Create Prompt Template</h4>
                             <p class="text-muted mb-4">
-                                You're editing the prompt for <strong><span id="selected-window-display"></span></strong>. 
+                                Design your prompt template for <strong><span id="selected-window-display"></span></strong>. 
                                 This template will be used when processing text copied from this application.
                             </p>
                             
@@ -200,15 +200,15 @@
                                     Click on a template to use it as a starting point
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mt-4">
-                            <button type="button" id="prev-step-btn" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-1"></i> Back to Window Selection
-                            </button>
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-save me-1"></i> Update Prompt
-                            </button>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" id="prev-step-btn" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Window Selection
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-save me-1"></i> Save Prompt
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -244,12 +244,6 @@
 
         let allWindows = [];
         let currentStep = 1;
-        
-        // Initialize the selected window display
-        selectedWindowDisplay.textContent = windowIdentifierInput.value;
-        if (selectedWindowDisplay2) {
-            selectedWindowDisplay2.textContent = windowIdentifierInput.value;
-        }
         
         // Step navigation
         nextStepBtn.addEventListener('click', function() {
@@ -590,11 +584,6 @@
         0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
         70% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
         100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
-    }
-    
-    .highlight-animation {
-        animation: highlight-pulse 1.5s ease-in-out;
-        border-color: #4361ee;
     }
     
     .subtle-highlight {

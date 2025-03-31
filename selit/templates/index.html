@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Selit - Dashboard{% endblock %}
+{% block title %}Select it! - Dashboard{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -81,79 +81,73 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-7">
-        <div class="card h-100">
-            <div class="card-header d-flex align-items-center">
+    <div>
+        <div class="card h-100 border-0">
+            <div class="card-header border-bottom d-flex align-items-center">
                 <i class="bi bi-info-circle me-2 text-primary"></i>
-                <h4 class="mb-0">How to Use</h4>
+                <h5 class="mb-0">How to Use</h5>
             </div>
             <div class="card-body p-4">
                 <div class="steps">
-                    <div class="step d-flex mb-4">
+                    <div class="step d-flex mb-4 align-items-start">
                         <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">1</span>
-                        </div>
-                        <div>
-                            <h5>Configure API Key</h5>
-                            <p class="text-muted mb-0">Set up your Gemini API key in the settings page</p>
-                        </div>
-                    </div>
-                    <div class="step d-flex mb-4">
-                        <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">2</span>
-                        </div>
-                        <div>
-                            <h5>Set Up Prompts</h5>
-                            <p class="text-muted mb-0">Create custom prompts for specific applications</p>
-                        </div>
-                    </div>
-                    <div class="step d-flex mb-4">
-                        <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">3</span>
-                        </div>
-                        <div>
-                            <h5>Copy Text</h5>
-                            <p class="text-muted mb-0">Copy text starting with "{{ trigger_word }}" from any application</p>
-                        </div>
-                    </div>
-                    <div class="step d-flex">
-                        <div class="step-icon me-3">
-                            <span class="badge bg-primary rounded-circle p-2" style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">4</span>
-                        </div>
-                        <div>
-                            <h5>Get AI-Enhanced Results</h5>
-                            <p class="text-muted mb-0">The AI-generated text will automatically replace your clipboard content</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-5">
-        <div class="card h-100">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-list-check me-2 text-primary"></i>
-                <h4 class="mb-0">Active Prompts</h4>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush fixed-height-container" style="border-radius: 0;">
-                    {% for window_id in prompts|sort %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center border-start-0 border-end-0">
-                            <div>
-                                <i class="bi bi-window me-2 text-primary"></i> {{ window_id }}
+                            <div class="rounded-pill bg-primary text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.9rem; font-weight: 600;">
+                                1
                             </div>
-                            <a href="{{ url_for('edit_prompt', window_id=window_id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil"></i>
-                            </a>
                         </div>
-                    {% else %}
-                        <div class="list-group-item text-center py-5 border-0">
-                            <i class="bi bi-chat-square-text text-muted" style="font-size: 2rem; opacity: 0.3;"></i>
-                            <p class="mt-3 text-muted">No prompts configured yet</p>
-                            <a href="{{ url_for('prompts') }}" class="btn btn-sm btn-primary">Add Your First Prompt</a>
+                        <div class="step-content">
+                            <h6 class="fw-bold mb-1">Configure API Key</h6>
+                            <p class="text-muted mb-1">Set up your Gemini API key in the <a href="{{ url_for('settings') }}" class="text-decoration-none">settings page</a></p>
+                            <div class="text-muted small">
+                                <i class="bi bi-lightbulb text-warning me-1"></i> 
+                                Get a free API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-decoration-none">Google AI Studio</a>
+                            </div>
                         </div>
-                    {% endfor %}
+                    </div>
+                    
+                    <div class="step d-flex mb-4 align-items-start">
+                        <div class="step-icon me-3">
+                            <div class="rounded-pill bg-primary text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.9rem; font-weight: 600;">
+                                2
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <h6 class="fw-bold mb-1">Set Up Prompts</h6>
+                            <p class="text-muted mb-1">Create custom prompts for specific applications in the <a href="{{ url_for('prompts') }}" class="text-decoration-none">prompts page</a></p>
+                            <div class="text-muted small">
+                                <i class="bi bi-magic text-primary me-1"></i>
+                                Use our AI prompt generator to create effective prompts
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step d-flex mb-4 align-items-start">
+                        <div class="step-icon me-3">
+                            <div class="rounded-pill bg-primary text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.9rem; font-weight: 600;">
+                                3
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <h6 class="fw-bold mb-1">Copy Text</h6>
+                            <p class="text-muted mb-1">Copy text containing <span class="text-primary fw-medium">"{{ trigger_word }}"</span> from any application</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step d-flex align-items-start">
+                        <div class="step-icon me-3">
+                            <div class="rounded-pill bg-primary text-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.9rem; font-weight: 600;">
+                                4
+                            </div>
+                        </div>
+                        <div class="step-content">
+                            <h6 class="fw-bold mb-1">Get AI-Enhanced Results</h6>
+                            <p class="text-muted mb-1">The AI-generated text will automatically replace your clipboard content</p>
+                            <div class="text-muted small">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                Paste anywhere to use the enhanced text
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

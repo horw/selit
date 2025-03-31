@@ -4,14 +4,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SubmitField, HiddenField
 from wtforms.validators import DataRequired
-import psutil
+import threading
 
-# Platform-specific imports
 if platform.system() == 'Windows':
     import win32gui
     import win32process
 
-from selit.main import ConfigManager, PromptManager, GeminiAPI
+from selit.main import ConfigManager, PromptManager, GeminiAPI, ClipboardMonitor, process_call
 from selit.utils import get_window_info
 
 app = Flask(__name__)
@@ -73,6 +72,11 @@ def prompts():
                           prompts=prompt_manager.prompts, 
                           prompt_form=prompt_form,
                           delete_form=delete_form)
+
+@app.route('/prompts/add_page', methods=['GET'])
+def add_prompt_page():
+    form = PromptForm()
+    return render_template('add_prompt.html', form=form)
 
 @app.route('/prompts/add', methods=['POST'])
 def add_prompt():
@@ -172,6 +176,13 @@ def generate_prompt():
 
 def run_web_server(host='127.0.0.1', port=5000, debug=False):
     """Run the web server for the UI."""
+    # Start clipboard monitor in a background thread
+    monitor = ClipboardMonitor(process_call)
+    monitor_thread = threading.Thread(target=monitor.monitor_clipboard, daemon=True)
+    monitor_thread.start()
+    print("Clipboard monitor started in background")
+    
+    # Run Flask app
     app.run(host=host, port=port, debug=debug)
 
 if __name__ == '__main__':

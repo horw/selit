@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Selit - Settings{% endblock %}
+{% block title %}Select it! - Settings{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -12,7 +12,7 @@
             </div>
             <div class="card-body p-4">
                 <p class="text-muted mb-4">
-                    Configure your API key and trigger word to customize how Selit works with your clipboard content.
+                    Configure your API key and trigger word to customize how Select it! works with your clipboard content.
                 </p>
                 
                 <form method="POST" action="{{ url_for('settings') }}">
@@ -65,7 +65,7 @@
                             <ol class="mb-0">
                                 <li class="mb-2">Enter your Gemini API key to enable AI processing</li>
                                 <li class="mb-2">Set a trigger word that will activate the AI (e.g., "ai", "process", etc.)</li>
-                                <li>When you copy text that starts with your trigger word, Selit will automatically process it with AI</li>
+                                <li>When you copy text that containing with your trigger word, Select it! will automatically process it with AI</li>
                             </ol>
                         </div>
                     </div>

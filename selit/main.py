@@ -332,115 +332,12 @@ def monitor_command():
     monitor.monitor_clipboard()
 
 
-def interactive_add_prompt():
-    """Interactive mode for adding prompts by selecting windows."""
-    print("\n===== Interactive Prompt Creation Mode =====")
-    print("This mode helps you create prompts for specific windows.")
-    print("Follow the steps below:")
-    
-    # Create a monitor to get window info
-    monitor = ClipboardMonitor(lambda x, y: y)
-    
-    # Step 1: Get current window info with a timer
-    print("\nStep 1: You to switch to the window you want to create a prompt for and turn back to console...")
-    print("Waiting for you to switch windows...")
-
-    stack = [monitor.get_active_window_info()]
-    while True:
-        if stack[-1] != monitor.get_active_window_info():
-            stack.append(monitor.get_active_window_info())
-        if len(stack) > 1:
-            if stack[-1] == stack[0]:
-                break
-        time.sleep(0.1)
-    
-    window_info = stack[-2]
-    
-    print("\nCurrent window detected:                 ")  # Extra spaces to clear the countdown
-    print(f"  Title: {window_info['title']}")
-    print(f"  Process: {window_info['process_name']}")
-    
-    print("\nPlease switch back to this console window to continue...")
-    time.sleep(3)
-    
-    print("\nStep 2: Choose an identifier for this window.")
-    print("You can use the window title, process name, or a custom name.")
-    print("The identifier will be used to match the window in the future.")
-    
-    suggestions = []
-    if window_info['title']:
-        suggestions.append(window_info['title'])
-    if window_info['process_name']:
-        suggestions.append(window_info['process_name'])
-    
-    if suggestions:
-        print("\nSuggested identifiers:")
-        for i, suggestion in enumerate(suggestions, 1):
-            print(f"  {i}. {suggestion}")
-    
-    identifier = input("\nEnter an identifier (or number from suggestions): ").strip()
-    
-    if identifier.isdigit() and 1 <= int(identifier) <= len(suggestions):
-        identifier = suggestions[int(identifier) - 1]
-    
-    print("\nStep 3: Enter the prompt to use for this window.")
-    print("This is the instruction that will be sent to the AI when you trigger it.")
-    print("Write a clear instruction like:")
-    print("  'You are a helpful assistant. Please rewrite the following text to be more professional:'")
-    prompt = input("\nEnter prompt: ").strip()
-    
-    prompt_manager = PromptManager()
-    success = prompt_manager.add_prompt(identifier, prompt)
-    
-    if success:
-        print(f"\nPrompt for '{identifier}' added successfully!")
-    else:
-        print("\nFailed to save the prompt. Please try again.")
-    
-    print("\n===== Interactive Mode Complete =====")
-
-
-def config_command(args):
-    """Handle configuration commands."""
-    config_manager = ConfigManager()
-    
-    if args.action == 'show':
-        config_manager.show_config()
-    elif args.action == 'api-key':
-        if args.value:
-            config_manager.set_api_key(args.value)
-        else:
-            print("Error: API key value is required")
-            print("Usage: selit config api-key YOUR_API_KEY")
-    elif args.action == 'trigger-word':
-        if args.value:
-            config_manager.set_trigger_word(args.value)
-        else:
-            print("Error: Trigger word value is required")
-            print("Usage: selit config trigger-word YOUR_TRIGGER_WORD")
-
-
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description='Selit - A smart clipboard enhancement tool')
     subparsers = parser.add_subparsers(dest='command', help='Command to run')
     
     monitor_parser = subparsers.add_parser('monitor', help='Start clipboard monitoring')
-    
-    list_parser = subparsers.add_parser('list', help='List all prompts')
-    
-    add_parser = subparsers.add_parser('add', help='Add or update a prompt')
-    add_parser.add_argument('identifier', help='Window title or process name identifier')
-    add_parser.add_argument('prompt', help='Prompt text to use')
-    
-    interactive_parser = subparsers.add_parser('interactive', help='Interactively add a prompt by selecting a window')
-    
-    remove_parser = subparsers.add_parser('remove', help='Remove a prompt')
-    remove_parser.add_argument('identifier', help='Window title or process name identifier to remove')
-    
-    config_parser = subparsers.add_parser('config', help='Configure settings')
-    config_parser.add_argument('action', choices=['show', 'api-key', 'trigger-word'], help='Configuration action to perform')
-    config_parser.add_argument('value', nargs='?', help='Value for the configuration (if applicable)')
     
     web_parser = subparsers.add_parser('web', help='Launch the web interface')
     web_parser.add_argument('--host', default="127.0.0.1", help='Host to bind the web server to')
@@ -449,20 +346,8 @@ def main():
 
     args = parser.parse_args()
     
-    prompt_manager = PromptManager()
-    
     if args.command == 'monitor':
         monitor_command()
-    elif args.command == 'list':
-        prompt_manager.list_prompts()
-    elif args.command == 'add':
-        prompt_manager.add_prompt(args.identifier, args.prompt)
-    elif args.command == 'interactive':
-        interactive_add_prompt()
-    elif args.command == 'remove':
-        prompt_manager.remove_prompt(args.identifier)
-    elif args.command == 'config':
-        config_command(args)
     elif args.command == 'web':
         # Import web module here to avoid circular imports
         from selit.web import run_web_server
