@@ -309,8 +309,13 @@ def process_call(window_info, current_clipboard):
             print("No matching prompt found for this window.")
             return current_clipboard
 
-        prompt_text = f"{prompt}{current_clipboard}"
 
+        if "{text}" in prompt:
+            prompt_text = prompt.replace('{text}', current_clipboard)
+        else:
+            prompt_text = f"{prompt}{current_clipboard}"
+
+        print(prompt_text)
         gemini_api = GeminiAPI()
         generated_text = gemini_api.generate_text(prompt_text)
         
