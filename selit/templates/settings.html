@@ -92,6 +92,9 @@
         const toggleButton = document.getElementById('toggleApiKey');
         
         if (apiKeyInput && toggleButton) {
+            // Set initial state
+            apiKeyInput.setAttribute('type', 'password');
+            
             toggleButton.addEventListener('click', function() {
                 const type = apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';
                 apiKeyInput.setAttribute('type', type);
@@ -99,9 +102,6 @@
                     '<i class="bi bi-eye"></i>' : 
                     '<i class="bi bi-eye-slash"></i>';
             });
-            
-            // Default to password type for security
-            apiKeyInput.setAttribute('type', 'password');
         }
     });
 </script>

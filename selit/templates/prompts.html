@@ -64,7 +64,7 @@
                                     <div class="mb-4">
                                         <div class="card">
                                             <div class="card-body p-0">
-                                                <div class="list-group" id="windowsList" style="max-height: 250px; overflow-y: auto; border-radius: var(--card-border-radius);">
+                                                <div class="list-group fixed-height-container" id="windowsList" style="border-radius: var(--card-border-radius);">
                                                     <div class="d-flex justify-content-center p-4">
                                                         <div class="spinner-border text-primary" role="status">
                                                             <span class="visually-hidden">Loading...</span>
@@ -279,8 +279,10 @@
                 
                 item.addEventListener('click', function() {
                     windowIdentifierInput.value = window.title;
-                    item.classList.add('active');
-                    setTimeout(() => item.classList.remove('active'), 500);
+                    // Highlight the selected item without changing layout
+                    const originalBackground = item.style.backgroundColor;
+                    item.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
+                    setTimeout(() => item.style.backgroundColor = originalBackground, 300);
                 });
                 
                 windowsList.appendChild(item);
@@ -357,9 +359,6 @@
                             Prompt generated successfully! You can edit it below.
                         </div>
                     `;
-                    promptTextInput.focus();
-                    promptTextInput.classList.add('border-success');
-                    setTimeout(() => promptTextInput.classList.remove('border-success'), 2000);
                 } else {
                     aiGenerateStatus.innerHTML = `
                         <div class="alert alert-danger">
