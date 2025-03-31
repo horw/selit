@@ -7,11 +7,30 @@ Selit (Select it!) is a smart clipboard enhancement tool that monitors your clip
 - Monitor clipboard for changes and detect which window is using the clipboard
 - Apply different prompts based on the active window or application
 - Send text to Gemini AI API with customized prompts
-- Store configurations and prompts in Windows AppData directory
+- Store configurations and prompts in Windows AppData directory or Linux home directory
 
 ## Installation
 
+### Windows
+
 ```bash
+# Install from source
+pip install -e .
+
+# Or install directly from GitHub
+pip install git+https://github.com/yourusername/selit.git
+```
+
+### Linux
+
+```bash
+# For best window title detection, install wmctrl or xdotool
+sudo apt-get install wmctrl xdotool  # Debian/Ubuntu
+# OR
+sudo dnf install wmctrl xdotool     # Fedora/RHEL
+# OR
+sudo pacman -S wmctrl xdotool       # Arch Linux
+
 # Install from source
 pip install -e .
 
@@ -96,7 +115,11 @@ selit config api-key YOUR_API_KEY
 
 ## File Locations
 
+### Windows
 All configuration files are stored in: `%APPDATA%\selit\`
+
+### Linux
+All configuration files are stored in: `~/.selit/`
 
 - `config.json` - Stores your API key and other configuration
 - `prompts.json` - Stores your custom prompts for different windows

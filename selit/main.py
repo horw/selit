@@ -1,18 +1,22 @@
 import os
 import time
 import pyperclip
-import win32gui
-import win32process
-import psutil
-from datetime import datetime
+import platform
 import requests
 import json
 import argparse
 
+from selit.utils import get_window_info
 
 def get_app_data_dir():
-    """Get the application data directory in Windows AppData/Local."""
-    app_data_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'selit')
+    """Get the application data directory based on platform."""
+    if platform.system() == 'Windows':
+        # Windows: use AppData/Roaming
+        app_data_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'selit')
+    else:
+        # Linux/macOS: use ~/.selit
+        app_data_dir = os.path.join(os.path.expanduser('~'), '.selit')
+    
     os.makedirs(app_data_dir, exist_ok=True)
     return app_data_dir
 
@@ -36,21 +40,16 @@ class ClipboardMonitor:
 
     def get_active_window_info(self):
         try:
-            hwnd = win32gui.GetForegroundWindow()
-            _, process_id = win32process.GetWindowThreadProcessId(hwnd)
-            window_title = win32gui.GetWindowText(hwnd)
+            window_info = get_window_info(get_active_only=True)
+            if window_info:
+                return window_info
             
-            try:
-                process = psutil.Process(process_id)
-                process_name = process.name()
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                process_name = "Unknown"
-            
+            # Fallback in case the utility returns None
             return {
-                "hwnd": hwnd,
-                "title": window_title,
-                "process_id": process_id,
-                "process_name": process_name,
+                "hwnd": None,
+                "title": "No active window detected",
+                "process_id": None,
+                "process_name": "Unknown",
             }
         except Exception as e:
             return {
@@ -96,7 +95,7 @@ class PromptManager:
                     return json.load(f)
             else:
                 # If prompts.json exists in current directory, migrate it
-                local_prompts = 'promts.json'
+                local_prompts = 'prompts.json'
                 if os.path.exists(local_prompts):
                     print(f"Migrating prompts from {local_prompts} to {self.prompts_file}")
                     with open(local_prompts, 'r', encoding='utf-8') as f:
@@ -153,7 +152,7 @@ class PromptManager:
 
     def get_prompt_for_window(self, window_info):
         """Get the appropriate prompt for the current window."""
-        for key in self.prompts:
+        for key in sorted(self.prompts, key=lambda k: -len(k)):
             if key in window_info['title'] or key in window_info['process_name']:
                 return self.prompts[key]
         return None
@@ -311,7 +310,7 @@ def process_call(window_info, current_clipboard):
             return current_clipboard
 
         prompt_text = f"{prompt}{current_clipboard}"
-        
+
         gemini_api = GeminiAPI()
         generated_text = gemini_api.generate_text(prompt_text)
         

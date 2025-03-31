@@ -5,7 +5,7 @@ description = "A clipboard monitoring tool that tracks which window is using the
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "pywin32",
+#    "pywin32",
     "pyperclip",
     "psutil",
     "requests",

@@ -1,13 +1,18 @@
 import os
+import platform
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SubmitField, HiddenField
 from wtforms.validators import DataRequired
-import win32gui
-import win32process
 import psutil
 
+# Platform-specific imports
+if platform.system() == 'Windows':
+    import win32gui
+    import win32process
+
 from selit.main import ConfigManager, PromptManager, GeminiAPI
+from selit.utils import get_window_info
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -34,28 +39,7 @@ class DeletePromptForm(FlaskForm):
 
 def get_all_windows():
     """Get a list of all visible windows with their titles and process names."""
-    windows = []
-    
-    def enum_windows_callback(hwnd, results):
-        if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
-            window_title = win32gui.GetWindowText(hwnd)
-            try:
-                _, process_id = win32process.GetWindowThreadProcessId(hwnd)
-                process = psutil.Process(process_id)
-                process_name = process.name()
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                process_name = "Unknown"
-            
-            if window_title and window_title not in [w["title"] for w in results]:
-                results.append({
-                    "hwnd": hwnd,
-                    "title": window_title,
-                    "process_name": process_name
-                })
-        return True
-    
-    win32gui.EnumWindows(enum_windows_callback, windows)
-    return sorted(windows, key=lambda w: w["title"].lower())
+    return get_window_info(get_active_only=False)
 
 @app.route('/')
 def index():
