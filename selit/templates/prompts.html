@@ -97,6 +97,66 @@
                                             You can use <code>{text}</code> to represent the user's input.
                                         </div>
                                     </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-card-list me-2"></i>Quick Prompt Templates
+                                        </label>
+                                        <div class="row g-2">
+                                            <div class="col-md-4">
+                                                <div class="card h-100 prompt-template-card" data-template="You are a professional writer. Please improve the following text while maintaining its meaning and making it more concise and professional:">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-title"><i class="bi bi-pencil-square me-2 text-primary"></i>Professional Writer</h6>
+                                                        <p class="card-text small text-muted">Improves text to be more professional and concise</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card h-100 prompt-template-card" data-template="You are a grammar assistant. Please correct any grammar and spelling errors in the following text while maintaining its original meaning:">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-title"><i class="bi bi-spell-check me-2 text-primary"></i>Grammar Checker</h6>
+                                                        <p class="card-text small text-muted">Fixes grammar and spelling errors</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card h-100 prompt-template-card" data-template="You are a translator. Please translate the following text to {language} while preserving its meaning and tone:">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-title"><i class="bi bi-translate me-2 text-primary"></i>Translator</h6>
+                                                        <p class="card-text small text-muted">Translates text to another language</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card h-100 prompt-template-card" data-template="You are an expert summarizer. Please create a concise summary of the following text capturing the key points:">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-title"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Summarizer</h6>
+                                                        <p class="card-text small text-muted">Creates a concise summary of text</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card h-100 prompt-template-card" data-template="You are a creative writer. Please rewrite the following text in a more creative and engaging way:">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-title"><i class="bi bi-lightning me-2 text-primary"></i>Creative Rewriter</h6>
+                                                        <p class="card-text small text-muted">Makes text more creative and engaging</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="card h-100 prompt-template-card" data-template="You are a code assistant. Please explain the following code and suggest improvements if needed:">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="card-title"><i class="bi bi-code-square me-2 text-primary"></i>Code Assistant</h6>
+                                                        <p class="card-text small text-muted">Explains and improves code snippets</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-text mt-2">
+                                            <i class="bi bi-cursor me-1"></i>
+                                            Click on a template to use it as a starting point
+                                        </div>
+                                    </div>
                                     
                                     <div class="card bg-light mb-4">
                                         <div class="card-body">
@@ -220,8 +280,30 @@
         const generatePromptBtn = document.getElementById('generatePromptBtn');
         const promptTextInput = document.getElementById('prompt_text');
         const aiGenerateStatus = document.getElementById('aiGenerateStatus');
+        const promptTemplateCards = document.querySelectorAll('.prompt-template-card');
         
         let allWindows = [];
+        
+        // Add click event listeners to prompt template cards
+        promptTemplateCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const template = this.getAttribute('data-template');
+                promptTextInput.value = template;
+                
+                // Temporarily highlight the selected template card
+                this.classList.add('border-primary');
+                setTimeout(() => {
+                    this.classList.remove('border-primary');
+                }, 500);
+                
+                // Scroll to the prompt text area
+                promptTextInput.scrollIntoView({ behavior: 'smooth' });
+                promptTextInput.focus();
+            });
+            
+            // Add hover effect
+            card.classList.add('cursor-pointer');
+        });
         
         // Function to fetch windows from the server
         function fetchWindows() {
@@ -382,4 +464,17 @@
         fetchWindows();
     });
 </script>
+
+<style>
+    .prompt-template-card {
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+    
+    .prompt-template-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
+</style>
 {% endblock %}

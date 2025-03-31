@@ -6,42 +6,50 @@
 <div class="row">
     <div class="col-md-8 offset-md-2">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h2>Edit Prompt - {{ window_id }}</h2>
-                <button type="button" class="btn btn-info" id="refreshWindowsBtn">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh Windows
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-pencil-square feature-icon me-2" style="font-size: 1.4rem;"></i>
+                <h2 class="mb-0">Edit Prompt - {{ window_id }}</h2>
+                <button type="button" class="btn btn-primary ms-auto" id="refreshWindowsBtn">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh Windows
                 </button>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="POST" action="{{ url_for('update_prompt', window_id=window_id) }}">
                     {{ form.csrf_token }}
                     
-                    <div class="mb-3">
-                        <label for="window_identifier" class="form-label">{{ form.window_identifier.label }}</label>
+                    <div class="mb-4">
+                        <label for="window_identifier" class="form-label fw-semibold">
+                            <i class="bi bi-window me-2"></i>{{ form.window_identifier.label }}
+                        </label>
                         {{ form.window_identifier(class="form-control", placeholder="e.g., WeChat, Notepad, Chrome") }}
                         {% if form.window_identifier.errors %}
-                            <div class="text-danger">
+                            <div class="text-danger mt-2">
                                 {% for error in form.window_identifier.errors %}
-                                    {{ error }}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
                             The name or part of the window title of the application
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="current_windows" class="form-label">Current Open Windows</label>
+                    <div class="mb-4">
+                        <label for="current_windows" class="form-label fw-semibold">
+                            <i class="bi bi-list me-2"></i>Current Open Windows
+                        </label>
                         <div class="input-group">
                             <input type="text" id="windowSearch" class="form-control" placeholder="Search windows...">
-                            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">Clear</button>
+                            <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
                         </div>
                         <div class="mt-2 mb-2">
                             <div class="card">
                                 <div class="card-body p-0">
-                                    <div class="list-group" id="windowsList" style="max-height: 300px; overflow-y: auto;">
-                                        <div class="d-flex justify-content-center p-3">
+                                    <div class="list-group fixed-height-container" id="windowsList" style="border-radius: var(--card-border-radius);">
+                                        <div class="d-flex justify-content-center p-4">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="visually-hidden">Loading...</span>
                                             </div>
@@ -50,46 +58,121 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-text">
+                        <div class="form-text mt-2">
+                            <i class="bi bi-cursor me-1"></i>
                             Click on a window to use it as the identifier
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="prompt_text" class="form-label">{{ form.prompt_text.label }}</label>
-                        {{ form.prompt_text(class="form-control", rows=10, placeholder="Enter prompt template...") }}
+                    <div class="mb-4">
+                        <label for="prompt_text" class="form-label fw-semibold">
+                            <i class="bi bi-chat-text me-2"></i>{{ form.prompt_text.label }}
+                        </label>
+                        {{ form.prompt_text(class="form-control", rows=6, placeholder="Enter prompt template...") }}
                         {% if form.prompt_text.errors %}
-                            <div class="text-danger">
+                            <div class="text-danger mt-2">
                                 {% for error in form.prompt_text.errors %}
-                                    {{ error }}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        <div class="form-text">
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
                             This template will be used when processing text from this application.
-                            You can use {text} to represent the user's input.
+                            You can use <code>{text}</code> to represent the user's input.
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="context_for_ai" class="form-label">Generate Prompt with AI</label>
-                        <div class="input-group">
-                            <textarea id="context_for_ai" class="form-control" rows="3" 
-                                     placeholder="Describe what kind of responses you want from AI for this window..."></textarea>
-                            <button class="btn btn-outline-primary" type="button" id="generatePromptBtn">
-                                <i class="bi bi-magic"></i> Generate
-                            </button>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-card-list me-2"></i>Quick Prompt Templates
+                        </label>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <div class="card h-100 prompt-template-card" data-template="You are a professional writer. Please improve the following text while maintaining its meaning and making it more concise and professional:">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title"><i class="bi bi-pencil-square me-2 text-primary"></i>Professional Writer</h6>
+                                        <p class="card-text small text-muted">Improves text to be more professional and concise</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 prompt-template-card" data-template="You are a grammar assistant. Please correct any grammar and spelling errors in the following text while maintaining its original meaning:">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title"><i class="bi bi-spell-check me-2 text-primary"></i>Grammar Checker</h6>
+                                        <p class="card-text small text-muted">Fixes grammar and spelling errors</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 prompt-template-card" data-template="You are a translator. Please translate the following text to {language} while preserving its meaning and tone:">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title"><i class="bi bi-translate me-2 text-primary"></i>Translator</h6>
+                                        <p class="card-text small text-muted">Translates text to another language</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 prompt-template-card" data-template="You are an expert summarizer. Please create a concise summary of the following text capturing the key points:">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Summarizer</h6>
+                                        <p class="card-text small text-muted">Creates a concise summary of text</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 prompt-template-card" data-template="You are a creative writer. Please rewrite the following text in a more creative and engaging way:">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title"><i class="bi bi-lightning me-2 text-primary"></i>Creative Rewriter</h6>
+                                        <p class="card-text small text-muted">Makes text more creative and engaging</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 prompt-template-card" data-template="You are a code assistant. Please explain the following code and suggest improvements if needed:">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title"><i class="bi bi-code-square me-2 text-primary"></i>Code Assistant</h6>
+                                        <p class="card-text small text-muted">Explains and improves code snippets</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-text">
-                            Describe the context and what kind of responses you want from AI for this application.
-                            AI will suggest a prompt template based on your description.
+                        <div class="form-text mt-2">
+                            <i class="bi bi-cursor me-1"></i>
+                            Click on a template to use it as a starting point
                         </div>
-                        <div id="aiGenerateStatus" class="mt-2" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="mb-3">
+                                <i class="bi bi-magic me-2"></i>AI-Assisted Prompt Generation
+                            </h5>
+                            <div class="mb-3">
+                                <label for="context_for_ai" class="form-label">Describe Your Needs</label>
+                                <textarea id="context_for_ai" class="form-control" rows="3" 
+                                      placeholder="Describe what kind of responses you want from AI for this window..."></textarea>
+                                <div class="form-text mt-2">
+                                    <i class="bi bi-lightbulb me-1"></i>
+                                    Describe the context and what kind of responses you want from AI for this application.
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex">
+                                <button class="btn btn-primary" type="button" id="generatePromptBtn">
+                                    <i class="bi bi-magic me-1"></i> Generate Prompt Template
+                                </button>
+                            </div>
+                            <div id="aiGenerateStatus" class="mt-3" style="display: none;"></div>
+                        </div>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('prompts') }}" class="btn btn-secondary me-md-2">Cancel</a>
-                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('prompts') }}" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left"></i> Back to Prompts
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> {{ form.submit.label.text }}
+                        </button>
                     </div>
                 </form>
             </div>
@@ -101,22 +184,44 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const windowsList = document.getElementById('windowsList');
         const windowIdentifierInput = document.getElementById('window_identifier');
+        const windowsList = document.getElementById('windowsList');
         const windowSearch = document.getElementById('windowSearch');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         const refreshWindowsBtn = document.getElementById('refreshWindowsBtn');
-        const generatePromptBtn = document.getElementById('generatePromptBtn');
         const contextForAI = document.getElementById('context_for_ai');
+        const generatePromptBtn = document.getElementById('generatePromptBtn');
         const promptTextInput = document.getElementById('prompt_text');
         const aiGenerateStatus = document.getElementById('aiGenerateStatus');
+        const promptTemplateCards = document.querySelectorAll('.prompt-template-card');
         
         let allWindows = [];
+        
+        // Add click event listeners to prompt template cards
+        promptTemplateCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const template = this.getAttribute('data-template');
+                promptTextInput.value = template;
+                
+                // Temporarily highlight the selected template card
+                this.classList.add('border-primary');
+                setTimeout(() => {
+                    this.classList.remove('border-primary');
+                }, 500);
+                
+                // Scroll to the prompt text area
+                promptTextInput.scrollIntoView({ behavior: 'smooth' });
+                promptTextInput.focus();
+            });
+            
+            // Add hover effect
+            card.classList.add('cursor-pointer');
+        });
         
         // Function to fetch windows from the server
         function fetchWindows() {
             windowsList.innerHTML = `
-                <div class="d-flex justify-content-center p-3">
+                <div class="d-flex justify-content-center p-4">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
@@ -131,7 +236,8 @@
                 })
                 .catch(error => {
                     windowsList.innerHTML = `
-                        <div class="alert alert-danger m-2">
+                        <div class="alert alert-danger m-3">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
                             Error loading windows: ${error.message}
                         </div>
                     `;
@@ -142,7 +248,8 @@
         function renderWindowsList(windows) {
             if (windows.length === 0) {
                 windowsList.innerHTML = `
-                    <div class="alert alert-info m-2">
+                    <div class="alert alert-info m-3">
+                        <i class="bi bi-info-circle me-2"></i>
                         No windows found.
                     </div>
                 `;
@@ -156,14 +263,21 @@
                 item.type = 'button';
                 item.className = 'list-group-item list-group-item-action';
                 item.innerHTML = `
-                    <div class="d-flex w-100 justify-content-between">
-                        <h6 class="mb-1">${window.title}</h6>
-                        <small>${window.process_name}</small>
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-window me-2"></i>
+                            <span class="fw-medium">${window.title}</span>
+                        </div>
+                        <span class="badge bg-light text-dark">${window.process_name}</span>
                     </div>
                 `;
                 
                 item.addEventListener('click', function() {
                     windowIdentifierInput.value = window.title;
+                    // Highlight the selected item without changing layout
+                    const originalBackground = item.style.backgroundColor;
+                    item.style.backgroundColor = 'rgba(67, 97, 238, 0.1)';
+                    setTimeout(() => item.style.backgroundColor = originalBackground, 300);
                 });
                 
                 windowsList.appendChild(item);
@@ -202,12 +316,22 @@
             const windowId = windowIdentifierInput.value.trim();
             
             if (!context) {
-                aiGenerateStatus.innerHTML = 'Please provide a context for AI to generate a prompt.';
+                aiGenerateStatus.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Please provide a context for AI to generate a prompt.
+                    </div>
+                `;
                 aiGenerateStatus.style.display = 'block';
                 return;
             }
             
-            aiGenerateStatus.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Generating prompt...';
+            aiGenerateStatus.innerHTML = `
+                <div class="d-flex align-items-center text-primary">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    <span>Generating prompt template...</span>
+                </div>
+            `;
             aiGenerateStatus.style.display = 'block';
             
             fetch('/api/generate-prompt', {
@@ -224,13 +348,28 @@
             .then(data => {
                 if (data.success) {
                     promptTextInput.value = data.prompt;
-                    aiGenerateStatus.innerHTML = '<div class="alert alert-success">Prompt generated successfully!</div>';
+                    aiGenerateStatus.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Prompt generated successfully! You can edit it below.
+                        </div>
+                    `;
                 } else {
-                    aiGenerateStatus.innerHTML = '<div class="alert alert-danger">Error: ' + data.message + '</div>';
+                    aiGenerateStatus.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            Error: ${data.message}
+                        </div>
+                    `;
                 }
             })
             .catch(error => {
-                aiGenerateStatus.innerHTML = '<div class="alert alert-danger">Error generating prompt: ' + error.message + '</div>';
+                aiGenerateStatus.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Error generating prompt: ${error.message}
+                    </div>
+                `;
             });
         });
         
@@ -238,4 +377,17 @@
         fetchWindows();
     });
 </script>
+
+<style>
+    .prompt-template-card {
+        cursor: pointer;
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+    
+    .prompt-template-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color);
+    }
+</style>
 {% endblock %}
