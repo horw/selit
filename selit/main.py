@@ -88,6 +88,7 @@ class PromptManager:
     def __init__(self, prompts_file=None):
         self.prompts_file = prompts_file or get_prompts_path()
         self.prompts = self._load_prompts()
+        self.config_manager = ConfigManager()
 
     def _load_prompts(self):
         """Load prompts from the JSON file."""
@@ -157,10 +158,21 @@ class PromptManager:
         for key in sorted(self.prompts, key=lambda k: -len(k)):
             if key in window_info['title'] or key in window_info['process_name']:
                 return self.prompts[key]
-        return None
+        # If no prompt matches, return the default prompt from configuration
+        return self.config_manager.get_default_prompt()
 
 
 class ConfigManager:
+    default_prompt =  (
+        "You are a grammar assistant specializing in technical writing. "
+        "Carefully check the grammar in the text below. "
+        "Correct any grammar, spelling, punctuation, and style errors "
+        "while ensuring the original meaning and intent of the text remain unchanged. "
+        "Accuracy and attention to detail are crucial. "
+        "Output only the corrected text; "
+        "do not provide any analysis or additional information.\n{text}"
+    )
+    
     def __init__(self, config_file=None):
         self.config_file = config_file or get_config_path()
         self.config = self._load_config()
@@ -185,7 +197,8 @@ class ConfigManager:
                 # Create default config if file doesn't exist
                 default_config = {
                     "api_key": "",
-                    "trigger_word": "aiit"
+                    "trigger_word": "aiit",
+                    "default_prompt": ConfigManager.default_prompt
                 }
                 with open(self.config_file, 'w', encoding='utf-8') as f:
                     json.dump(default_config, f, indent=2)
@@ -227,17 +240,31 @@ class ConfigManager:
             print(f"Trigger word updated to '{trigger_word}' successfully.")
             return True
         return False
+        
+    def get_default_prompt(self):
+        """Get the default prompt from configuration."""
+        return self.config.get("default_prompt", ConfigManager.default_prompt)
+        
+    def set_default_prompt(self, default_prompt):
+        """Set the default prompt in configuration."""
+        self.config["default_prompt"] = default_prompt
+        if self._save_config():
+            print(f"Default prompt updated successfully.")
+            return True
+        return False
 
     def show_config(self):
         """Display the current configuration."""
         api_key = self.config.get("api_key", "")
         masked_key = f"{api_key[:4]}...{api_key[-4:]}" if len(api_key) > 8 else "Not set"
         trigger_word = self.config.get("trigger_word", "aiit")
+        default_prompt = self.config.get("default_prompt", ConfigManager.default_prompt)
         
         print("\nCurrent Configuration:")
         print("-" * 50)
         print(f"API Key: {masked_key}")
         print(f"Trigger Word: {trigger_word}")
+        print(f"Default Prompt: {default_prompt}")
         print(f"Config Location: {self.config_file}")
         print(f"Prompts Location: {get_prompts_path()}")
         print("-" * 50)
@@ -307,10 +334,7 @@ def process_call(window_info, current_clipboard):
         prompt_manager = PromptManager()
         prompt = prompt_manager.get_prompt_for_window(window_info)
         
-        if not prompt:
-            print("No matching prompt found for this window.")
-            return current_clipboard
-
+        # No need to check for None prompt since we now have a default prompt
 
         if "{text}" in prompt:
             prompt_text = prompt.replace('{text}', current_clipboard)

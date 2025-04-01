@@ -25,6 +25,7 @@ prompt_manager = PromptManager()
 class ConfigForm(FlaskForm):
     api_key = StringField('Gemini API Key', validators=[DataRequired()])
     trigger_word = StringField('Trigger Word', validators=[DataRequired()])
+    default_prompt = TextAreaField('Default Prompt', validators=[DataRequired()])
     submit = SubmitField('Save Settings')
 
 class PromptForm(FlaskForm):
@@ -45,6 +46,7 @@ def index():
     return render_template('index.html', 
                           api_key=config_manager.get_api_key(),
                           trigger_word=config_manager.get_trigger_word(),
+                          default_prompt=config_manager.get_default_prompt(),
                           prompts=prompt_manager.prompts)
 
 @app.route('/settings', methods=['GET', 'POST'])
@@ -54,10 +56,12 @@ def settings():
     if request.method == 'GET':
         form.api_key.data = config_manager.get_api_key()
         form.trigger_word.data = config_manager.get_trigger_word()
+        form.default_prompt.data = config_manager.get_default_prompt()
     
     if form.validate_on_submit():
         config_manager.set_api_key(form.api_key.data)
         config_manager.set_trigger_word(form.trigger_word.data)
+        config_manager.set_default_prompt(form.default_prompt.data)
         config_manager._save_config()
         flash('Settings updated successfully!', 'success')
         return redirect(url_for('index'))

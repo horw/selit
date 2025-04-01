@@ -59,12 +59,31 @@
                         </div>
                     </div>
                     
+                    <div class="mb-4">
+                        <label for="default_prompt" class="form-label fw-semibold">
+                            <i class="bi bi-chat-dots me-2"></i>{{ form.default_prompt.label }}
+                        </label>
+                        {{ form.default_prompt(class="form-control", rows="4", placeholder="Enter default prompt to use when no specific prompt matches a window") }}
+                        {% if form.default_prompt.errors %}
+                            <div class="text-danger">
+                                {% for error in form.default_prompt.errors %}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            This prompt will be used when no specific prompt matches the current window. Use {text} to include the copied text.
+                        </div>
+                    </div>
+                    
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h5 class="mb-3"><i class="bi bi-lightbulb me-2"></i>How It Works</h5>
                             <ol class="mb-0">
                                 <li class="mb-2">Enter your Gemini API key to enable AI processing</li>
                                 <li class="mb-2">Set a trigger word that will activate the AI (e.g., "ai", "process", etc.)</li>
+                                <li class="mb-2">Configure a default prompt for windows without specific prompts</li>
                                 <li>When you copy text that containing with your trigger word, Select it! will automatically process it with AI</li>
                             </ol>
                         </div>
