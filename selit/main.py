@@ -7,6 +7,8 @@ import json
 import argparse
 
 from selit.utils import get_window_info
+from selit.notification import notification
+
 
 def get_app_data_dir():
     """Get the application data directory based on platform."""
@@ -321,9 +323,11 @@ def process_call(window_info, current_clipboard):
         
         if generated_text:
             print("Successfully generated text.")
+            notification(title="Select it!", message="Text generated successfully")
             return generated_text
         else:
             print("Failed to generate text. Returning original content.")
+            notification(title="Select it!", message="Failed to generate text.")
             return current_clipboard
 
     except Exception as e:
