@@ -1,5 +1,7 @@
 import subprocess
 import platform
+import os
+import threading
 
 def notification(title="SeLit", message="Text generated successfully"):
     """
@@ -27,9 +29,26 @@ def notification(title="SeLit", message="Text generated successfully"):
         # Could use osascript -e 'display notification "message" with title "title"'
         print(f"Desktop Notification: {title} - {message}")
     elif system == "Windows":
-        # Placeholder for Windows notification (if needed in the future)
-        # Could use Windows toast notifications
-        print(f"Desktop Notification: {title} - {message}")
+        try:
+            from win10toast import ToastNotifier
+            
+            # Create toaster and show notification in a non-blocking way
+            def show_toast():
+                toaster = ToastNotifier()
+                toaster.show_toast(
+                    title,
+                    message,
+                    duration=5,
+                    threaded=True
+                )
+            
+            # Run in a separate thread to prevent blocking
+            threading.Thread(target=show_toast, daemon=True).start()
+            
+        except Exception as e:
+            # Fallback if something goes wrong with the Windows notification
+            print(f"Desktop Notification: {title} - {message}")
+            print(f"Error displaying Windows notification: {e}")
     else:
         # Fallback for unsupported systems
         print(f"Desktop Notification: {title} - {message}")
