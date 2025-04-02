@@ -5,6 +5,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SubmitField, HiddenField, SelectField, RadioField
 from wtforms.validators import DataRequired
 import threading
+import datetime
 
 if platform.system() == 'Windows':
     import win32gui
@@ -12,6 +13,7 @@ if platform.system() == 'Windows':
 
 from selit.main import ConfigManager, PromptManager, GeminiAPI, OpenAIAPI, DeepSeekAPI, ClipboardMonitor, process_call
 from selit.utils import get_window_info
+from selit.history_logger import get_call_history
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -21,6 +23,17 @@ app.static_folder = os.path.join(os.path.dirname(__file__), 'static')
 # Initialize managers
 config_manager = ConfigManager()
 prompt_manager = PromptManager()
+
+# Register template filters
+@app.template_filter('datetime')
+def format_datetime(value):
+    if isinstance(value, str):
+        try:
+            dt = datetime.datetime.fromisoformat(value)
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
+        except (ValueError, TypeError):
+            return value
+    return value
 
 class ConfigForm(FlaskForm):
     ai_service = RadioField('AI Service', choices=[
@@ -59,6 +72,9 @@ def get_all_windows():
 
 @app.route('/')
 def index():
+    # Get today's call history for the dashboard
+    today_history = get_call_history(days=1)
+    
     return render_template('index.html', 
                           api_key=config_manager.get_api_key(),
                           openai_api_key=config_manager.get_openai_api_key(),
@@ -68,7 +84,8 @@ def index():
                           deepseek_model=config_manager.get_deepseek_model(),
                           trigger_word=config_manager.get_trigger_word(),
                           default_prompt=config_manager.get_default_prompt(),
-                          prompts=prompt_manager.prompts)
+                          prompts=prompt_manager.prompts,
+                          today_history=today_history)
 
 @app.route('/settings', methods=['GET', 'POST'])
 def settings():
@@ -154,6 +171,23 @@ def delete_prompt():
         else:
             flash(f'Failed to delete prompt for "{window_identifier}"', 'danger')
     return redirect(url_for('prompts'))
+
+@app.route('/history')
+def history():
+    # Get the number of days from request, default to 1 (today only)
+    try:
+        days = int(request.args.get('days', 1))
+        if days < 1:
+            days = 1
+        elif days > 30:  # Limit to 30 days max
+            days = 30
+    except ValueError:
+        days = 1
+    
+    # Get call history
+    call_history = get_call_history(days)
+    
+    return render_template('history.html', history=call_history, days=days)
 
 @app.route('/api/windows', methods=['GET'])
 def get_windows():

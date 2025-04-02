@@ -251,6 +251,12 @@
                                <i class="bi bi-chat-left-text"></i> Prompts
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'history' %}active{% endif %}" 
+                               href="{{ url_for('history') }}">
+                               <i class="bi bi-clock-history"></i> History
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

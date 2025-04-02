@@ -8,30 +8,7 @@ import argparse
 
 from selit.utils import get_window_info
 from selit.notification import notification
-
-
-def get_app_data_dir():
-    """Get the application data directory based on platform."""
-    if platform.system() == 'Windows':
-        # Windows: use AppData/Roaming
-        app_data_dir = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'selit')
-    else:
-        # Linux/macOS: use ~/.selit
-        app_data_dir = os.path.join(os.path.expanduser('~'), '.selit')
-    
-    os.makedirs(app_data_dir, exist_ok=True)
-    return app_data_dir
-
-
-def get_config_path():
-    """Get the path to the config file."""
-    return os.path.join(get_app_data_dir(), 'config.json')
-
-
-def get_prompts_path():
-    """Get the path to the prompts file."""
-    return os.path.join(get_app_data_dir(), 'prompts.json')
-
+from selit.history_logger import log_call, get_app_data_dir
 
 class ClipboardMonitor:
     def __init__(self, log_callback):
@@ -233,11 +210,11 @@ class ConfigManager:
             print(f"API key updated successfully.")
             return True
         return False
-    
+
     def get_openai_api_key(self):
         """Get the OpenAI API key from configuration."""
         return self.config.get("openai_api_key", "")
-    
+
     def set_openai_api_key(self, api_key):
         """Set the OpenAI API key in configuration."""
         self.config["openai_api_key"] = api_key
@@ -285,19 +262,19 @@ class ConfigManager:
     def get_ai_service(self):
         """Get the AI service to use (gemini, openai, or deepseek)."""
         return self.config.get("ai_service", "gemini")
-    
+
     def set_ai_service(self, service):
         """Set the AI service to use (gemini, openai, or deepseek)."""
         if service not in ["gemini", "openai", "deepseek"]:
             print(f"Invalid AI service: {service}. Must be 'gemini', 'openai', or 'deepseek'.")
             return False
-        
+
         self.config["ai_service"] = service
         if self._save_config():
             print(f"AI service updated to '{service}' successfully.")
             return True
         return False
-        
+
     def get_trigger_word(self):
         """Get the trigger word from configuration."""
         return self.config.get("trigger_word", "aiit")
@@ -326,19 +303,19 @@ class ConfigManager:
         """Display the current configuration."""
         api_key = self.config.get("api_key", "")
         masked_key = f"{api_key[:4]}...{api_key[-4:]}" if len(api_key) > 8 else "Not set"
-        
+
         openai_api_key = self.config.get("openai_api_key", "")
         masked_openai_key = f"{openai_api_key[:4]}...{openai_api_key[-4:]}" if len(openai_api_key) > 8 else "Not set"
-        
+
         deepseek_api_key = self.config.get("deepseek_api_key", "")
         masked_deepseek_key = f"{deepseek_api_key[:4]}...{deepseek_api_key[-4:]}" if len(deepseek_api_key) > 8 else "Not set"
-        
+
         trigger_word = self.config.get("trigger_word", "aiit")
         default_prompt = self.config.get("default_prompt", ConfigManager.default_prompt)
         ai_service = self.config.get("ai_service", "gemini")
         openai_model = self.config.get("openai_model", "gpt-3.5-turbo")
         deepseek_model = self.config.get("deepseek_model", "deepseek-chat")
-        
+
         print("\nCurrent Configuration:")
         print("-" * 50)
         print(f"AI Service: {ai_service}")
@@ -395,15 +372,25 @@ class GeminiAPI:
             return None
 
 
+def get_config_path():
+    """Get the path to the config file."""
+    return os.path.join(get_app_data_dir(), 'config.json')
+
+
+def get_prompts_path():
+    """Get the path to the prompts file."""
+    return os.path.join(get_app_data_dir(), 'prompts.json')
+
+
 class OpenAIAPI:
     def __init__(self):
         config_manager = ConfigManager()
         self.api_key = config_manager.get_openai_api_key()
         self.model = config_manager.get_openai_model()
-        
+
         if not self.api_key:
             print("Warning: OpenAI API key not configured. Please set it using 'selit config openai-api-key YOUR_API_KEY'")
-        
+
         self.url = "https://api.openai.com/v1/chat/completions"
         self.headers = {
             'Content-Type': 'application/json',
@@ -415,7 +402,7 @@ class OpenAIAPI:
         if not self.api_key:
             print("Error: OpenAI API key not configured")
             return None
-            
+
         try:
             data = {
                 "model": self.model,
@@ -426,8 +413,8 @@ class OpenAIAPI:
             }
 
             response = requests.post(
-                self.url, 
-                headers=self.headers, 
+                self.url,
+                headers=self.headers,
                 data=json.dumps(data)
             )
 
@@ -447,10 +434,10 @@ class DeepSeekAPI:
         config_manager = ConfigManager()
         self.api_key = config_manager.get_deepseek_api_key()
         self.model = config_manager.get_deepseek_model()
-        
+
         if not self.api_key:
             print("Warning: DeepSeek API key not configured. Please set it using 'selit config deepseek-api-key YOUR_API_KEY'")
-        
+
         self.url = "https://api.deepseek.com/v1/chat/completions"
         self.headers = {
             'Content-Type': 'application/json',
@@ -462,7 +449,7 @@ class DeepSeekAPI:
         if not self.api_key:
             print("Error: DeepSeek API key not configured")
             return None
-            
+
         try:
             data = {
                 "model": self.model,
@@ -473,8 +460,8 @@ class DeepSeekAPI:
             }
 
             response = requests.post(
-                self.url, 
-                headers=self.headers, 
+                self.url,
+                headers=self.headers,
                 data=json.dumps(data)
             )
 
@@ -499,6 +486,7 @@ def process_call(window_info, current_clipboard):
     if trigger_word not in current_clipboard:
         return current_clipboard
     
+    original_input = current_clipboard
     current_clipboard = current_clipboard.replace(trigger_word, "")
 
     print('Start processing')
@@ -519,21 +507,23 @@ def process_call(window_info, current_clipboard):
             prompt_text = f"{prompt}{current_clipboard}"
 
         print(prompt_text)
-        
+
         ai_service = config_manager.get_ai_service()
-        
+
         if ai_service == "gemini":
             api = GeminiAPI()
         elif ai_service == "openai":
             api = OpenAIAPI()
         else:  # deepseek
             api = DeepSeekAPI()
-            
+
         generated_text = api.generate_text(prompt_text)
         
         if generated_text:
             print("Successfully generated text.")
             notification(title="Select it!", message="Text generated successfully")
+            # Log the successful call
+            log_call(window_info, original_input, generated_text, trigger_word)
             return generated_text
         else:
             print("Failed to generate text. Returning original content.")
@@ -554,41 +544,41 @@ def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description="SeLit - Select it! A clipboard monitoring tool to process copied text with AI model assistance")
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
-    
+
     # Monitor command
     monitor_parser = subparsers.add_parser("monitor", help="Monitor the clipboard for changes")
-    
+
     # Config command
     config_parser = subparsers.add_parser("config", help="Configure the application")
     config_subparsers = config_parser.add_subparsers(dest="config_action", help="Configuration action")
-    
+
     # Config: show
     config_show = config_subparsers.add_parser("show", help="Show current configuration")
-    
+
     # Config: API key
     config_api_key = config_subparsers.add_parser("api-key", help="Set the Gemini API key")
     config_api_key.add_argument("key", help="The Gemini API key to set")
-    
+
     # Config: OpenAI API key
     config_openai_key = config_subparsers.add_parser("openai-api-key", help="Set the OpenAI API key")
     config_openai_key.add_argument("key", help="The OpenAI API key to set")
-    
+
     # Config: DeepSeek API key
     config_deepseek_key = config_subparsers.add_parser("deepseek-api-key", help="Set the DeepSeek API key")
     config_deepseek_key.add_argument("key", help="The DeepSeek API key to set")
-    
+
     # Config: AI service
     config_service = config_subparsers.add_parser("ai-service", help="Set the AI service to use (gemini, openai, or deepseek)")
     config_service.add_argument("service", choices=["gemini", "openai", "deepseek"], help="The AI service to use")
-    
+
     # Config: OpenAI model
     config_openai_model = config_subparsers.add_parser("openai-model", help="Set the OpenAI model to use")
     config_openai_model.add_argument("model", help="The OpenAI model to use (e.g., gpt-3.5-turbo, gpt-4)")
-    
+
     # Config: DeepSeek model
     config_deepseek_model = config_subparsers.add_parser("deepseek-model", help="Set the DeepSeek model to use")
     config_deepseek_model.add_argument("model", help="The DeepSeek model to use (e.g., deepseek-chat, deepseek-coder)")
-    
+
     # Config: trigger word
     config_trigger = config_subparsers.add_parser("trigger", help="Set the trigger word")
     config_trigger.add_argument("word", help="The trigger word to set")
@@ -600,30 +590,30 @@ def main():
     # Prompts command
     prompts_parser = subparsers.add_parser("prompts", help="Manage prompts")
     prompts_subparsers = prompts_parser.add_subparsers(dest="prompts_action", help="Prompts action")
-    
+
     # Prompts: list
     prompts_list = prompts_subparsers.add_parser("list", help="List all available prompts")
-    
+
     # Prompts: add
     prompts_add = prompts_subparsers.add_parser("add", help="Add a new prompt")
     prompts_add.add_argument("window", help="Window identifier (title or process name)")
     prompts_add.add_argument("prompt", help="The prompt text to add")
-    
+
     # Prompts: remove
     prompts_remove = prompts_subparsers.add_parser("remove", help="Remove a prompt")
     prompts_remove.add_argument("window", help="Window identifier (title or process name)")
-    
+
     # Web interface command
     web_parser = subparsers.add_parser("web", help="Start the web interface")
     web_parser.add_argument("--port", type=int, default=5000, help="Port to run the web interface on (default: 5000)")
-    
+
     args = parser.parse_args()
     
     if args.command == "monitor":
         monitor_command()
     elif args.command == "config":
         config_manager = ConfigManager()
-        
+
         if args.config_action == "show":
             config_manager.show_config()
         elif args.config_action == "api-key":
@@ -646,7 +636,7 @@ def main():
             config_manager.show_config()
     elif args.command == "prompts":
         prompt_manager = PromptManager()
-        
+
         if args.prompts_action == "list":
             prompt_manager.list_prompts()
         elif args.prompts_action == "add":
