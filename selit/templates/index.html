@@ -28,7 +28,30 @@
 </div>
 
 <div class="row g-4 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-robot feature-icon me-3 text-primary fs-4"></i>
+                    <h5 class="mb-0">AI Service</h5>
+                </div>
+                <hr>
+                <div class="text-center mt-3">
+                    {% if ai_service == "gemini" %}
+                        <i class="bi bi-stars text-success fs-3"></i>
+                        <p class="mt-2 mb-0">Gemini</p>
+                    {% elif ai_service == "openai" %}
+                        <i class="bi bi-cpu text-success fs-3"></i>
+                        <p class="mt-2 mb-0">OpenAI ({{ openai_model }})</p>
+                    {% else %}
+                        <i class="bi bi-ticket text-success fs-3"></i>
+                        <p class="mt-2 mb-0">DeepSeek ({{ deepseek_model }})</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center mb-3">
@@ -37,18 +60,24 @@
                 </div>
                 <hr>
                 <div class="text-center mt-3">
-                    {% if api_key %}
+                    {% if ai_service == "gemini" and api_key %}
                         <i class="bi bi-check-circle-fill text-success fs-3"></i>
-                        <p class="mt-2 mb-0">Configured</p>
+                        <p class="mt-2 mb-0">Gemini API Key Configured</p>
+                    {% elif ai_service == "openai" and openai_api_key %}
+                        <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                        <p class="mt-2 mb-0">OpenAI API Key Configured</p>
+                    {% elif ai_service == "deepseek" and deepseek_api_key %}
+                        <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                        <p class="mt-2 mb-0">DeepSeek API Key Configured</p>
                     {% else %}
                         <i class="bi bi-x-circle-fill text-danger fs-3"></i>
-                        <p class="mt-2 mb-0">Not Configured</p>
+                        <p class="mt-2 mb-0">API Key Not Configured</p>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center mb-3">
@@ -63,7 +92,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center mb-3">

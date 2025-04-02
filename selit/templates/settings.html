@@ -12,32 +12,182 @@
             </div>
             <div class="card-body p-4">
                 <p class="text-muted mb-4">
-                    Configure your API key and trigger word to customize how Select it! works with your clipboard content.
+                    Configure your AI service, API keys, and trigger word to customize how Select it! works with your clipboard content.
                 </p>
                 
                 <form method="POST" action="{{ url_for('settings') }}">
                     {{ form.csrf_token }}
                     
                     <div class="mb-4">
-                        <label for="api_key" class="form-label fw-semibold">
-                            <i class="bi bi-key me-2"></i>{{ form.api_key.label }}
+                        <label class="form-label fw-semibold mb-3">
+                            <i class="bi bi-robot me-2"></i>AI Service
                         </label>
-                        <div class="input-group mb-2">
-                            {{ form.api_key(class="form-control", placeholder="Enter your Gemini API key") }}
-                            <button class="btn btn-outline-secondary" type="button" id="toggleApiKey">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        {% if form.api_key.errors %}
-                            <div class="text-danger">
-                                {% for error in form.api_key.errors %}
-                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
-                                {% endfor %}
+                        <div class="row ai-service-selector">
+                            {% for subfield in form.ai_service %}
+                            <div class="col-md-4 mb-3">
+                                <div class="ai-service-card" data-service="{{ subfield.label.text|lower }}">
+                                    <input type="radio" name="ai_service" value="{{ subfield.label.text|lower }}" id="{{ subfield.id }}" class="visually-hidden" {% if form.ai_service.data == subfield.label.text|lower %}checked{% endif %}>
+                                    <label class="ai-service-label" for="{{ subfield.id }}">
+                                        <div class="d-flex flex-column align-items-center p-4 text-center h-100">
+                                            {% if subfield.label.text == 'Gemini' %}
+                                            <i class="bi bi-stars mb-3 service-icon"></i>
+                                            <h5 class="mb-1">Gemini</h5>
+                                            <p class="text-muted small mb-0">Google's advanced AI model</p>
+                                            {% elif subfield.label.text == 'OpenAI' %}
+                                            <i class="bi bi-cpu mb-3 service-icon"></i>
+                                            <h5 class="mb-1">OpenAI</h5>
+                                            <p class="text-muted small mb-0">GPT models from OpenAI</p>
+                                            {% else %}
+                                            <i class="bi bi-ticket mb-3 service-icon"></i>
+                                            <h5 class="mb-1">DeepSeek</h5>
+                                            <p class="text-muted small mb-0">Powerful reasoning models</p>
+                                            {% endif %}
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                        {% endif %}
-                        <div class="form-text">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Get your API key from <a href="https://ai.google.dev/" target="_blank" class="text-decoration-none">Google AI Studio <i class="bi bi-box-arrow-up-right"></i></a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="ai-service-section gemini-section">
+                        <div class="card border mb-4">
+                            <div class="card-header bg-light">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-stars me-2 text-primary"></i>
+                                    <h5 class="mb-0">Gemini Configuration</h5>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="mb-4">
+                                    <label for="api_key" class="form-label fw-semibold">
+                                        <i class="bi bi-key me-2"></i>{{ form.api_key.label }}
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        {{ form.api_key(class="form-control", placeholder="Enter your Gemini API key") }}
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleGeminiApiKey">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.api_key.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.api_key.errors %}
+                                                <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Get your API key from <a href="https://ai.google.dev/" target="_blank" class="text-decoration-none">Google AI Studio <i class="bi bi-box-arrow-up-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-service-section openai-section">
+                        <div class="card border mb-4">
+                            <div class="card-header bg-light">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-cpu me-2 text-primary"></i>
+                                    <h5 class="mb-0">OpenAI Configuration</h5>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="mb-4">
+                                    <label for="openai_api_key" class="form-label fw-semibold">
+                                        <i class="bi bi-key me-2"></i>{{ form.openai_api_key.label }}
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        {{ form.openai_api_key(class="form-control", placeholder="Enter your OpenAI API key") }}
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleOpenAIApiKey">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.openai_api_key.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.openai_api_key.errors %}
+                                                <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" class="text-decoration-none">OpenAI API Keys <i class="bi bi-box-arrow-up-right"></i></a>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="openai_model" class="form-label fw-semibold">
+                                        <i class="bi bi-cpu me-2"></i>{{ form.openai_model.label }}
+                                    </label>
+                                    {{ form.openai_model(class="form-select") }}
+                                    {% if form.openai_model.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.openai_model.errors %}
+                                                <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Select the OpenAI model you want to use for text generation
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-service-section deepseek-section">
+                        <div class="card border mb-4">
+                            <div class="card-header bg-light">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-ticket me-2 text-primary"></i>
+                                    <h5 class="mb-0">DeepSeek Configuration</h5>
+                                </div>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="mb-4">
+                                    <label for="deepseek_api_key" class="form-label fw-semibold">
+                                        <i class="bi bi-key me-2"></i>{{ form.deepseek_api_key.label }}
+                                    </label>
+                                    <div class="input-group mb-2">
+                                        {{ form.deepseek_api_key(class="form-control", placeholder="Enter your DeepSeek API key") }}
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleDeepSeekApiKey">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                    {% if form.deepseek_api_key.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.deepseek_api_key.errors %}
+                                                <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Get your API key from <a href="https://platform.deepseek.com/" target="_blank" class="text-decoration-none">DeepSeek Platform <i class="bi bi-box-arrow-up-right"></i></a>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="deepseek_model" class="form-label fw-semibold">
+                                        <i class="bi bi-cpu me-2"></i>{{ form.deepseek_model.label }}
+                                    </label>
+                                    {{ form.deepseek_model(class="form-select") }}
+                                    {% if form.deepseek_model.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.deepseek_model.errors %}
+                                                <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Select the DeepSeek model you want to use for text generation
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -81,10 +231,11 @@
                         <div class="card-body">
                             <h5 class="mb-3"><i class="bi bi-lightbulb me-2"></i>How It Works</h5>
                             <ol class="mb-0">
-                                <li class="mb-2">Enter your Gemini API key to enable AI processing</li>
+                                <li class="mb-2">Choose between Gemini, OpenAI, or DeepSeek for text generation</li>
+                                <li class="mb-2">Enter your API key for the selected service</li>
                                 <li class="mb-2">Set a trigger word that will activate the AI (e.g., "ai", "process", etc.)</li>
                                 <li class="mb-2">Configure a default prompt for windows without specific prompts</li>
-                                <li>When you copy text that containing with your trigger word, Select it! will automatically process it with AI</li>
+                                <li>When you copy text that contains your trigger word, Select it! will automatically process it with AI</li>
                             </ol>
                         </div>
                     </div>
@@ -107,21 +258,118 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const apiKeyInput = document.getElementById('api_key');
-        const toggleButton = document.getElementById('toggleApiKey');
-        
-        if (apiKeyInput && toggleButton) {
-            // Set initial state
-            apiKeyInput.setAttribute('type', 'password');
+        // Toggle password visibility
+        function setupPasswordToggle(inputId, toggleId) {
+            const input = document.getElementById(inputId);
+            const toggle = document.getElementById(toggleId);
             
-            toggleButton.addEventListener('click', function() {
-                const type = apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                apiKeyInput.setAttribute('type', type);
-                toggleButton.innerHTML = type === 'password' ? 
-                    '<i class="bi bi-eye"></i>' : 
-                    '<i class="bi bi-eye-slash"></i>';
+            if (input && toggle) {
+                // Set initial state
+                input.setAttribute('type', 'password');
+                
+                toggle.addEventListener('click', function() {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    toggle.innerHTML = type === 'password' ? 
+                        '<i class="bi bi-eye"></i>' : 
+                        '<i class="bi bi-eye-slash"></i>';
+                });
+            }
+        }
+        
+        setupPasswordToggle('api_key', 'toggleGeminiApiKey');
+        setupPasswordToggle('openai_api_key', 'toggleOpenAIApiKey');
+        setupPasswordToggle('deepseek_api_key', 'toggleDeepSeekApiKey');
+        
+        // AI Service selector
+        const aiServiceCards = document.querySelectorAll('.ai-service-card');
+        const geminiSection = document.querySelector('.gemini-section');
+        const openaiSection = document.querySelector('.openai-section');
+        const deepseekSection = document.querySelector('.deepseek-section');
+        
+        function updateVisibility() {
+            const selectedService = document.querySelector('input[name="ai_service"]:checked').value;
+            
+            if (selectedService === 'gemini') {
+                geminiSection.style.display = 'block';
+                openaiSection.style.display = 'none';
+                deepseekSection.style.display = 'none';
+            } else if (selectedService === 'openai') {
+                geminiSection.style.display = 'none';
+                openaiSection.style.display = 'block';
+                deepseekSection.style.display = 'none';
+            } else {
+                geminiSection.style.display = 'none';
+                openaiSection.style.display = 'none';
+                deepseekSection.style.display = 'block';
+            }
+            
+            // Update active card styling
+            aiServiceCards.forEach(card => {
+                if (card.dataset.service === selectedService) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
             });
         }
+        
+        // Initial visibility
+        updateVisibility();
+        
+        // Listen for changes on the cards
+        aiServiceCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                updateVisibility();
+            });
+        });
     });
 </script>
+
+<style>
+    .ai-service-card {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+    
+    .ai-service-card:hover {
+        border-color: #6c757d;
+        background-color: #f8f9fa;
+    }
+    
+    .ai-service-card.active {
+        border-color: #0d6efd;
+        background-color: #f0f7ff;
+    }
+    
+    .service-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #0d6efd;
+    }
+    
+    .ai-service-label {
+        cursor: pointer;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+</style>
 {% endblock %}

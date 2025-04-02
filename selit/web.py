@@ -2,7 +2,7 @@ import os
 import platform
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField, HiddenField
+from wtforms import StringField, TextAreaField, SubmitField, HiddenField, SelectField, RadioField
 from wtforms.validators import DataRequired
 import threading
 
@@ -10,7 +10,7 @@ if platform.system() == 'Windows':
     import win32gui
     import win32process
 
-from selit.main import ConfigManager, PromptManager, GeminiAPI, ClipboardMonitor, process_call
+from selit.main import ConfigManager, PromptManager, GeminiAPI, OpenAIAPI, DeepSeekAPI, ClipboardMonitor, process_call
 from selit.utils import get_window_info
 
 app = Flask(__name__)
@@ -23,7 +23,23 @@ config_manager = ConfigManager()
 prompt_manager = PromptManager()
 
 class ConfigForm(FlaskForm):
-    api_key = StringField('Gemini API Key', validators=[DataRequired()])
+    ai_service = RadioField('AI Service', choices=[
+        ('gemini', 'Gemini'), 
+        ('openai', 'OpenAI'),
+        ('deepseek', 'DeepSeek')
+    ], validators=[DataRequired()])
+    api_key = StringField('Gemini API Key')
+    openai_api_key = StringField('OpenAI API Key')
+    openai_model = SelectField('OpenAI Model', choices=[
+        ('gpt-3.5-turbo', 'GPT-3.5 Turbo'),
+        ('gpt-4', 'GPT-4'),
+        ('gpt-4-turbo', 'GPT-4 Turbo')
+    ])
+    deepseek_api_key = StringField('DeepSeek API Key')
+    deepseek_model = SelectField('DeepSeek Model', choices=[
+        ('deepseek-chat', 'DeepSeek Chat'),
+        ('deepseek-reasoner', 'DeepSeek Reasoner')
+    ])
     trigger_word = StringField('Trigger Word', validators=[DataRequired()])
     default_prompt = TextAreaField('Default Prompt', validators=[DataRequired()])
     submit = SubmitField('Save Settings')
@@ -45,6 +61,11 @@ def get_all_windows():
 def index():
     return render_template('index.html', 
                           api_key=config_manager.get_api_key(),
+                          openai_api_key=config_manager.get_openai_api_key(),
+                          deepseek_api_key=config_manager.get_deepseek_api_key(),
+                          ai_service=config_manager.get_ai_service(),
+                          openai_model=config_manager.get_openai_model(),
+                          deepseek_model=config_manager.get_deepseek_model(),
                           trigger_word=config_manager.get_trigger_word(),
                           default_prompt=config_manager.get_default_prompt(),
                           prompts=prompt_manager.prompts)
@@ -54,12 +75,22 @@ def settings():
     form = ConfigForm()
     
     if request.method == 'GET':
+        form.ai_service.data = config_manager.get_ai_service()
         form.api_key.data = config_manager.get_api_key()
+        form.openai_api_key.data = config_manager.get_openai_api_key()
+        form.openai_model.data = config_manager.get_openai_model()
+        form.deepseek_api_key.data = config_manager.get_deepseek_api_key()
+        form.deepseek_model.data = config_manager.get_deepseek_model()
         form.trigger_word.data = config_manager.get_trigger_word()
         form.default_prompt.data = config_manager.get_default_prompt()
     
     if form.validate_on_submit():
+        config_manager.set_ai_service(form.ai_service.data)
         config_manager.set_api_key(form.api_key.data)
+        config_manager.set_openai_api_key(form.openai_api_key.data)
+        config_manager.set_openai_model(form.openai_model.data)
+        config_manager.set_deepseek_api_key(form.deepseek_api_key.data)
+        config_manager.set_deepseek_model(form.deepseek_model.data)
         config_manager.set_trigger_word(form.trigger_word.data)
         config_manager.set_default_prompt(form.default_prompt.data)
         config_manager._save_config()
@@ -144,11 +175,11 @@ def generate_prompt():
         }), 400
     
     try:
-        gemini_api = GeminiAPI()
+        ai_service = config_manager.get_ai_service()
         
         # Prepare the system prompt for generating a template
         system_prompt = f"""
-        I need to create a prompt template for Gemini AI. Here's the context:
+        I need to create a prompt template for an AI assistant. Here's the context:
         
         - Application/Window: {window_identifier}
         - Context: {context}
@@ -160,7 +191,14 @@ def generate_prompt():
         Return ONLY the prompt template text without any explanations or additional text.
         """
         
-        result = gemini_api.generate_text(system_prompt)
+        if ai_service == "gemini":
+            api = GeminiAPI()
+        elif ai_service == "openai":
+            api = OpenAIAPI()
+        else:  # deepseek
+            api = DeepSeekAPI()
+            
+        result = api.generate_text(system_prompt)
         
         if result:
             return jsonify({

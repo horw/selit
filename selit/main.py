@@ -198,14 +198,19 @@ class ConfigManager:
                 default_config = {
                     "api_key": "",
                     "trigger_word": "aiit",
-                    "default_prompt": ConfigManager.default_prompt
+                    "default_prompt": ConfigManager.default_prompt,
+                    "openai_api_key": "",
+                    "ai_service": "gemini",  # default to gemini, options: "gemini", "openai", "deepseek"
+                    "openai_model": "gpt-3.5-turbo",  # default model
+                    "deepseek_api_key": "",
+                    "deepseek_model": "deepseek-chat"  # default model
                 }
                 with open(self.config_file, 'w', encoding='utf-8') as f:
                     json.dump(default_config, f, indent=2)
                 return default_config
         except Exception as e:
             print(f"Error loading configuration: {str(e)}")
-            return {"api_key": "", "trigger_word": "aiit"}
+            return {"api_key": "", "trigger_word": "aiit", "ai_service": "gemini", "openai_api_key": "", "openai_model": "gpt-3.5-turbo", "deepseek_api_key": "", "deepseek_model": "deepseek-chat"}
 
     def _save_config(self):
         """Save configuration to the JSON file."""
@@ -226,6 +231,70 @@ class ConfigManager:
         self.config["api_key"] = api_key
         if self._save_config():
             print(f"API key updated successfully.")
+            return True
+        return False
+    
+    def get_openai_api_key(self):
+        """Get the OpenAI API key from configuration."""
+        return self.config.get("openai_api_key", "")
+    
+    def set_openai_api_key(self, api_key):
+        """Set the OpenAI API key in configuration."""
+        self.config["openai_api_key"] = api_key
+        if self._save_config():
+            print(f"OpenAI API key updated successfully.")
+            return True
+        return False
+
+    def get_openai_model(self):
+        """Get the OpenAI model from configuration."""
+        return self.config.get("openai_model", "gpt-3.5-turbo")
+
+    def set_openai_model(self, model):
+        """Set the OpenAI model in configuration."""
+        self.config["openai_model"] = model
+        if self._save_config():
+            print(f"OpenAI model updated to '{model}' successfully.")
+            return True
+        return False
+
+    def get_deepseek_api_key(self):
+        """Get the DeepSeek API key from configuration."""
+        return self.config.get("deepseek_api_key", "")
+
+    def set_deepseek_api_key(self, api_key):
+        """Set the DeepSeek API key in configuration."""
+        self.config["deepseek_api_key"] = api_key
+        if self._save_config():
+            print(f"DeepSeek API key updated successfully.")
+            return True
+        return False
+
+    def get_deepseek_model(self):
+        """Get the DeepSeek model from configuration."""
+        return self.config.get("deepseek_model", "deepseek-chat")
+
+    def set_deepseek_model(self, model):
+        """Set the DeepSeek model in configuration."""
+        self.config["deepseek_model"] = model
+        if self._save_config():
+            print(f"DeepSeek model updated to '{model}' successfully.")
+            return True
+        return False
+
+    def get_ai_service(self):
+        """Get the AI service to use (gemini, openai, or deepseek)."""
+        return self.config.get("ai_service", "gemini")
+    
+    def set_ai_service(self, service):
+        """Set the AI service to use (gemini, openai, or deepseek)."""
+        if service not in ["gemini", "openai", "deepseek"]:
+            print(f"Invalid AI service: {service}. Must be 'gemini', 'openai', or 'deepseek'.")
+            return False
+        
+        self.config["ai_service"] = service
+        if self._save_config():
+            print(f"AI service updated to '{service}' successfully.")
             return True
         return False
         
@@ -257,18 +326,32 @@ class ConfigManager:
         """Display the current configuration."""
         api_key = self.config.get("api_key", "")
         masked_key = f"{api_key[:4]}...{api_key[-4:]}" if len(api_key) > 8 else "Not set"
+        
+        openai_api_key = self.config.get("openai_api_key", "")
+        masked_openai_key = f"{openai_api_key[:4]}...{openai_api_key[-4:]}" if len(openai_api_key) > 8 else "Not set"
+        
+        deepseek_api_key = self.config.get("deepseek_api_key", "")
+        masked_deepseek_key = f"{deepseek_api_key[:4]}...{deepseek_api_key[-4:]}" if len(deepseek_api_key) > 8 else "Not set"
+        
         trigger_word = self.config.get("trigger_word", "aiit")
         default_prompt = self.config.get("default_prompt", ConfigManager.default_prompt)
+        ai_service = self.config.get("ai_service", "gemini")
+        openai_model = self.config.get("openai_model", "gpt-3.5-turbo")
+        deepseek_model = self.config.get("deepseek_model", "deepseek-chat")
         
         print("\nCurrent Configuration:")
         print("-" * 50)
-        print(f"API Key: {masked_key}")
+        print(f"AI Service: {ai_service}")
+        print(f"Gemini API Key: {masked_key}")
+        print(f"OpenAI API Key: {masked_openai_key}")
+        print(f"OpenAI Model: {openai_model}")
+        print(f"DeepSeek API Key: {masked_deepseek_key}")
+        print(f"DeepSeek Model: {deepseek_model}")
         print(f"Trigger Word: {trigger_word}")
         print(f"Default Prompt: {default_prompt}")
         print(f"Config Location: {self.config_file}")
         print(f"Prompts Location: {get_prompts_path()}")
         print("-" * 50)
-
 
 class GeminiAPI:
     def __init__(self):
@@ -312,8 +395,102 @@ class GeminiAPI:
             return None
 
 
+class OpenAIAPI:
+    def __init__(self):
+        config_manager = ConfigManager()
+        self.api_key = config_manager.get_openai_api_key()
+        self.model = config_manager.get_openai_model()
+        
+        if not self.api_key:
+            print("Warning: OpenAI API key not configured. Please set it using 'selit config openai-api-key YOUR_API_KEY'")
+        
+        self.url = "https://api.openai.com/v1/chat/completions"
+        self.headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.api_key}'
+        }
+
+    def generate_text(self, prompt_text):
+        """Generate text using the OpenAI API."""
+        if not self.api_key:
+            print("Error: OpenAI API key not configured")
+            return None
+            
+        try:
+            data = {
+                "model": self.model,
+                "messages": [
+                    {"role": "user", "content": prompt_text}
+                ],
+                "temperature": 0.7
+            }
+
+            response = requests.post(
+                self.url, 
+                headers=self.headers, 
+                data=json.dumps(data)
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                return result['choices'][0]['message']['content']
+            else:
+                print(f"API Error: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            print(f"Exception in OpenAI API call: {str(e)}")
+            return None
+
+
+class DeepSeekAPI:
+    def __init__(self):
+        config_manager = ConfigManager()
+        self.api_key = config_manager.get_deepseek_api_key()
+        self.model = config_manager.get_deepseek_model()
+        
+        if not self.api_key:
+            print("Warning: DeepSeek API key not configured. Please set it using 'selit config deepseek-api-key YOUR_API_KEY'")
+        
+        self.url = "https://api.deepseek.com/v1/chat/completions"
+        self.headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.api_key}'
+        }
+
+    def generate_text(self, prompt_text):
+        """Generate text using the DeepSeek API."""
+        if not self.api_key:
+            print("Error: DeepSeek API key not configured")
+            return None
+            
+        try:
+            data = {
+                "model": self.model,
+                "messages": [
+                    {"role": "user", "content": prompt_text}
+                ],
+                "temperature": 0.7
+            }
+
+            response = requests.post(
+                self.url, 
+                headers=self.headers, 
+                data=json.dumps(data)
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                return result['choices'][0]['message']['content']
+            else:
+                print(f"API Error: {response.status_code} - {response.text}")
+                return None
+        except Exception as e:
+            print(f"Exception in DeepSeek API call: {str(e)}")
+            return None
+
+
 def process_call(window_info, current_clipboard):
-    """Process clipboard content using the Gemini API."""
+    """Process clipboard content using the selected AI API."""
     print(f"Processing clipboard from {window_info['process_name']} - {window_info['title']}")
 
     config_manager = ConfigManager()
@@ -342,8 +519,17 @@ def process_call(window_info, current_clipboard):
             prompt_text = f"{prompt}{current_clipboard}"
 
         print(prompt_text)
-        gemini_api = GeminiAPI()
-        generated_text = gemini_api.generate_text(prompt_text)
+        
+        ai_service = config_manager.get_ai_service()
+        
+        if ai_service == "gemini":
+            api = GeminiAPI()
+        elif ai_service == "openai":
+            api = OpenAIAPI()
+        else:  # deepseek
+            api = DeepSeekAPI()
+            
+        generated_text = api.generate_text(prompt_text)
         
         if generated_text:
             print("Successfully generated text.")
@@ -358,7 +544,6 @@ def process_call(window_info, current_clipboard):
         print(f"Exception in processing: {str(e)}")
         return current_clipboard
 
-
 def monitor_command():
     """Start the clipboard monitoring service."""
     monitor = ClipboardMonitor(process_call)
@@ -367,26 +552,115 @@ def monitor_command():
 
 def main():
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(description='Selit - A smart clipboard enhancement tool')
-    subparsers = parser.add_subparsers(dest='command', help='Command to run')
+    parser = argparse.ArgumentParser(description="SeLit - Select it! A clipboard monitoring tool to process copied text with AI model assistance")
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
     
-    monitor_parser = subparsers.add_parser('monitor', help='Start clipboard monitoring')
+    # Monitor command
+    monitor_parser = subparsers.add_parser("monitor", help="Monitor the clipboard for changes")
     
-    web_parser = subparsers.add_parser('web', help='Launch the web interface')
-    web_parser.add_argument('--host', default="127.0.0.1", help='Host to bind the web server to')
-    web_parser.add_argument('--port', type=int, default=5000, help='Port to run the web server on')
-    web_parser.add_argument('--debug', action='store_true', help='Run in debug mode')
-
+    # Config command
+    config_parser = subparsers.add_parser("config", help="Configure the application")
+    config_subparsers = config_parser.add_subparsers(dest="config_action", help="Configuration action")
+    
+    # Config: show
+    config_show = config_subparsers.add_parser("show", help="Show current configuration")
+    
+    # Config: API key
+    config_api_key = config_subparsers.add_parser("api-key", help="Set the Gemini API key")
+    config_api_key.add_argument("key", help="The Gemini API key to set")
+    
+    # Config: OpenAI API key
+    config_openai_key = config_subparsers.add_parser("openai-api-key", help="Set the OpenAI API key")
+    config_openai_key.add_argument("key", help="The OpenAI API key to set")
+    
+    # Config: DeepSeek API key
+    config_deepseek_key = config_subparsers.add_parser("deepseek-api-key", help="Set the DeepSeek API key")
+    config_deepseek_key.add_argument("key", help="The DeepSeek API key to set")
+    
+    # Config: AI service
+    config_service = config_subparsers.add_parser("ai-service", help="Set the AI service to use (gemini, openai, or deepseek)")
+    config_service.add_argument("service", choices=["gemini", "openai", "deepseek"], help="The AI service to use")
+    
+    # Config: OpenAI model
+    config_openai_model = config_subparsers.add_parser("openai-model", help="Set the OpenAI model to use")
+    config_openai_model.add_argument("model", help="The OpenAI model to use (e.g., gpt-3.5-turbo, gpt-4)")
+    
+    # Config: DeepSeek model
+    config_deepseek_model = config_subparsers.add_parser("deepseek-model", help="Set the DeepSeek model to use")
+    config_deepseek_model.add_argument("model", help="The DeepSeek model to use (e.g., deepseek-chat, deepseek-coder)")
+    
+    # Config: trigger word
+    config_trigger = config_subparsers.add_parser("trigger", help="Set the trigger word")
+    config_trigger.add_argument("word", help="The trigger word to set")
+    
+    # Config: default prompt
+    config_prompt = config_subparsers.add_parser("default-prompt", help="Set the default prompt")
+    config_prompt.add_argument("prompt", help="The default prompt to set")
+    
+    # Prompts command
+    prompts_parser = subparsers.add_parser("prompts", help="Manage prompts")
+    prompts_subparsers = prompts_parser.add_subparsers(dest="prompts_action", help="Prompts action")
+    
+    # Prompts: list
+    prompts_list = prompts_subparsers.add_parser("list", help="List all available prompts")
+    
+    # Prompts: add
+    prompts_add = prompts_subparsers.add_parser("add", help="Add a new prompt")
+    prompts_add.add_argument("window", help="Window identifier (title or process name)")
+    prompts_add.add_argument("prompt", help="The prompt text to add")
+    
+    # Prompts: remove
+    prompts_remove = prompts_subparsers.add_parser("remove", help="Remove a prompt")
+    prompts_remove.add_argument("window", help="Window identifier (title or process name)")
+    
+    # Web interface command
+    web_parser = subparsers.add_parser("web", help="Start the web interface")
+    web_parser.add_argument("--port", type=int, default=5000, help="Port to run the web interface on (default: 5000)")
+    
     args = parser.parse_args()
     
-    if args.command == 'monitor':
+    if args.command == "monitor":
         monitor_command()
-    elif args.command == 'web':
+    elif args.command == "config":
+        config_manager = ConfigManager()
+        
+        if args.config_action == "show":
+            config_manager.show_config()
+        elif args.config_action == "api-key":
+            config_manager.set_api_key(args.key)
+        elif args.config_action == "openai-api-key":
+            config_manager.set_openai_api_key(args.key)
+        elif args.config_action == "deepseek-api-key":
+            config_manager.set_deepseek_api_key(args.key)
+        elif args.config_action == "ai-service":
+            config_manager.set_ai_service(args.service)
+        elif args.config_action == "openai-model":
+            config_manager.set_openai_model(args.model)
+        elif args.config_action == "deepseek-model":
+            config_manager.set_deepseek_model(args.model)
+        elif args.config_action == "trigger":
+            config_manager.set_trigger_word(args.word)
+        elif args.config_action == "default-prompt":
+            config_manager.set_default_prompt(args.prompt)
+        else:
+            config_manager.show_config()
+    elif args.command == "prompts":
+        prompt_manager = PromptManager()
+        
+        if args.prompts_action == "list":
+            prompt_manager.list_prompts()
+        elif args.prompts_action == "add":
+            prompt_manager.add_prompt(args.window, args.prompt)
+        elif args.prompts_action == "remove":
+            prompt_manager.remove_prompt(args.window)
+        else:
+            prompt_manager.list_prompts()
+    elif args.command == "web":
         # Import web module here to avoid circular imports
         from selit.web import run_web_server
-        print(f"Starting web interface at http://{args.host}:{args.port}")
+        print(f"Starting web interface at http://localhost:{args.port}")
         print("Press Ctrl+C to stop the server")
-        run_web_server(host=args.host, port=args.port, debug=args.debug)
+        run_web_server(host="localhost", port=args.port, debug=False)
     else:
         parser.print_help()
 
