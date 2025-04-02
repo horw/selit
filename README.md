@@ -2,6 +2,12 @@
 
 Selit (Select it!) is a smart clipboard enhancement tool that monitors your clipboard and applies customized AI prompts based on the active window.
 
+<img src="./resources/logo.png" width="30%">
+
+## Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=horw/selit&type=Date)](https://star-history.com/#horw/selit&Date)
+
 ---
 
 # How to Start
