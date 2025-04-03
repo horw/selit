@@ -6,6 +6,7 @@ from wtforms import StringField, TextAreaField, SubmitField, HiddenField, Select
 from wtforms.validators import DataRequired
 import threading
 import datetime
+import json
 
 if platform.system() == 'Windows':
     import win32gui
@@ -13,7 +14,7 @@ if platform.system() == 'Windows':
 
 from selit.main import ConfigManager, PromptManager, GeminiAPI, OpenAIAPI, DeepSeekAPI, ClipboardMonitor, process_call
 from selit.utils import get_window_info
-from selit.history_logger import get_call_history
+from selit.history_logger import get_call_history, generate_day_summary, get_history_dir
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -261,6 +262,199 @@ def history():
     call_history = get_call_history(days)
     
     return render_template('history.html', history=call_history, days=days)
+
+@app.route('/history/summary')
+def history_summary():
+    # Get date parameter, default to today
+    date_str = request.args.get('date')
+    
+    if date_str:
+        try:
+            # Parse the date string
+            date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            # Invalid date format, default to today
+            date = datetime.datetime.now().date()
+    else:
+        # No date specified, use today
+        date = datetime.datetime.now().date()
+    
+    # Generate summary
+    summary = generate_day_summary(date)
+    
+    return jsonify(summary)
+
+@app.route('/history/summary/analyze', methods=['POST'])
+def analyze_summary():
+    # Get the summary data and date from request
+    request_data = request.json
+    
+    if not request_data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    # Extract date from the summary data
+    date_str = request_data.get('date')
+    if not date_str:
+        return jsonify({'error': 'No date provided'}), 400
+    
+    try:
+        # Parse the date string
+        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        # Invalid date format, default to today
+        date = datetime.datetime.now().date()
+    
+    # Get the full interaction data for that date
+    history_data = get_detailed_history_for_date(date)
+    
+    # Format the history data and summary into a meaningful text for AI analysis
+    analysis_text = format_detailed_history_for_ai(history_data, request_data)
+    
+    # Determine which AI service to use
+    ai_service = config_manager.get_ai_service()
+    
+    # Prepare the prompt for AI
+    prompt = (
+        "You are an assistant analyzing daily usage patterns of an AI assistant tool called 'Select it!'.\n\n"
+        "Below is a summary of a user's interactions for a day, followed by the detailed list of all interactions "
+        "including input text, output text, and the applications where they were used. "
+        "Please provide two distinct sections in your response:\n\n"
+        
+        "SECTION 1 - USAGE ANALYSIS:\n"
+        "Please analyze the data and provide insights about their usage patterns, including:\n"
+        "1. When they were most active\n"
+        "2. Which applications they used most frequently\n"
+        "3. Common themes or topics in their inputs\n"
+        "4. Patterns in the types of tasks they're using the assistant for\n"
+        "5. Any other interesting observations\n\n"
+        
+        "SECTION 2 - DAILY WORK REPORT:\n"
+        "Based on the interactions and their content, create a professional daily work report that the user could share with their boss. "
+        "This report should:\n"
+        "1. Summarize the main work activities performed today\n"
+        "2. Highlight key accomplishments and progress made\n"
+        "3. Identify the main projects or tasks worked on\n"
+        "4. Be written in a professional first-person tone (as if the user wrote it)\n"
+        "5. Be concise but comprehensive (approximately 150-250 words)\n\n"
+        
+        f"{analysis_text}\n\n"
+        
+        "Format both sections with appropriate headers. For the work report section, focus only on professional work-related activities "
+        "that would be appropriate to share with management, ignoring any personal conversations or activities."
+    )
+    
+    try:
+        # Process with the configured AI service
+        if ai_service == 'gemini':
+            api = GeminiAPI()
+            result = api.generate_text(prompt)
+        elif ai_service == 'openai':
+            api = OpenAIAPI()
+            result = api.generate_text(prompt)
+        elif ai_service == 'deepseek':
+            api = DeepSeekAPI()
+            result = api.generate_text(prompt)
+        else:
+            # Default to Gemini if service not recognized
+            api = GeminiAPI()
+            result = api.generate_text(prompt)
+            
+        return jsonify({'analysis': result})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+def get_detailed_history_for_date(date):
+    """Get detailed history data for a specific date"""
+    date_str = date.strftime('%Y-%m-%d')
+    log_file = os.path.join(get_history_dir(), f'selit_{date_str}.log')
+    
+    interactions = []
+    
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    try:
+                        entry = json.loads(line.strip())
+                        interactions.append(entry)
+                    except json.JSONDecodeError:
+                        # Skip invalid lines
+                        continue
+        except Exception as e:
+            print(f"Error reading history from {log_file}: {str(e)}")
+    
+    # Sort by timestamp (oldest first for chronological analysis)
+    interactions.sort(key=lambda x: x.get('timestamp', ''))
+    return interactions
+
+
+def format_detailed_history_for_ai(history_data, summary_data):
+    """Format detailed history and summary data into text for AI analysis"""
+    
+    # Start with a summary section
+    text = "=== DAILY SUMMARY ===\n"
+    text += f"Date: {summary_data['date']}\n"
+    text += f"Total Interactions: {summary_data['total_interactions']}\n"
+    
+    # Add busiest hour if available
+    if summary_data.get('busiest_hour') is not None:
+        hour = summary_data['busiest_hour']
+        text += f"Busiest Hour: {hour}:00 - {hour}:59\n"
+    
+    # Add average lengths
+    text += f"Average Input Length: {summary_data['average_input_length']} characters\n"
+    text += f"Average Output Length: {summary_data['average_output_length']} characters\n\n"
+    
+    # Add applications usage
+    text += "Most Used Applications:\n"
+    for app_name, count in summary_data.get('apps', {}).items():
+        text += f"- {app_name}: {count} interactions\n"
+    
+    # Add hour distribution
+    text += "\nActivity by Hour:\n"
+    for hour, count in summary_data.get('hour_distribution', {}).items():
+        if count > 0:
+            text += f"- {hour}:00 - {hour}:59: {count} interactions\n"
+    
+    # Add detailed interactions
+    text += "\n\n=== DETAILED INTERACTIONS ===\n"
+    
+    for i, entry in enumerate(history_data, 1):
+        timestamp = entry.get('timestamp', '')
+        try:
+            dt = datetime.datetime.fromisoformat(timestamp)
+            formatted_time = dt.strftime('%H:%M:%S')
+        except (ValueError, TypeError):
+            formatted_time = timestamp
+            
+        text += f"\n--- INTERACTION {i} (Time: {formatted_time}) ---\n"
+        
+        # Add window information
+        window = entry.get('window', {})
+        text += f"Application: {window.get('process_name', 'Unknown')}\n"
+        text += f"Window Title: {window.get('title', 'Unknown')}\n"
+        
+        # Add trigger word
+        text += f"Triggered by: {entry.get('trigger_word', 'Unknown')}\n\n"
+        
+        # Add input and output (truncate if too long to avoid hitting context limits)
+        input_text = entry.get('input', '')
+        output_text = entry.get('output', '')
+        
+        # Limit input/output length to 1000 chars if needed
+        max_length = 1000
+        if len(input_text) > max_length:
+            input_text = input_text[:max_length] + "... [truncated]"
+        if len(output_text) > max_length:
+            output_text = output_text[:max_length] + "... [truncated]"
+            
+        text += f"INPUT:\n{input_text}\n\n"
+        text += f"OUTPUT:\n{output_text}\n"
+    
+    return text
+
 
 @app.route('/api/windows', methods=['GET'])
 def get_windows():

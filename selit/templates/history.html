@@ -28,6 +28,9 @@
                             </select>
                         </div>
                     </form>
+                    <button type="button" class="btn btn-sm btn-outline-primary ms-2 generate-summary-btn" id="generateSummaryBtn">
+                        <i class="bi bi-bar-chart-line me-1"></i>Generate Day Summary
+                    </button>
                 </div>
             </div>
         </div>
@@ -111,6 +114,177 @@
                 </div>
             </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Day Summary Modal -->
+<div class="modal fade" id="summaryModal" tabindex="-1" aria-labelledby="summaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="summaryModalLabel">Daily Summary</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="summary-loading text-center py-5 d-none">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Generating summary...</p>
+                </div>
+                <div class="summary-content d-none">
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="icon-circle primary-light me-3">
+                                            <i class="bi bi-info-circle text-primary"></i>
+                                        </div>
+                                        <h6 class="card-title mb-0">Summary Information</h6>
+                                    </div>
+                                    <div class="summary-info">
+                                        <div class="info-item d-flex align-items-center mb-3">
+                                            <div class="icon-badge me-3">
+                                                <i class="bi bi-calendar-event"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small">Date</div>
+                                                <div class="fw-medium" id="summaryDate"></div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item d-flex align-items-center mb-3">
+                                            <div class="icon-badge me-3">
+                                                <i class="bi bi-chat-dots"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small">Total Interactions</div>
+                                                <div class="fw-medium" id="totalInteractions"></div>
+                                            </div>
+                                        </div>
+                                        <div class="info-item d-flex align-items-center">
+                                            <div class="icon-badge me-3">
+                                                <i class="bi bi-clock"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-muted small">Busiest Hour</div>
+                                                <div class="fw-medium" id="busiestHour"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="icon-circle primary-light me-3">
+                                            <i class="bi bi-rulers text-primary"></i>
+                                        </div>
+                                        <h6 class="card-title mb-0">Content Length Stats</h6>
+                                    </div>
+                                    <div class="length-stats">
+                                        <div class="stat-item mb-4">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="text-muted small">Average Input Length</span>
+                                                <span class="badge bg-light text-dark rounded-pill px-2" id="avgInputLengthBadge">0</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-primary" id="inputLengthProgress" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="text-muted small">Average Output Length</span>
+                                                <span class="badge bg-light text-dark rounded-pill px-2" id="avgOutputLengthBadge">0</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" id="outputLengthProgress" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="icon-circle primary-light me-3">
+                                            <i class="bi bi-window text-primary"></i>
+                                        </div>
+                                        <h6 class="card-title mb-0">Most Used Applications</h6>
+                                    </div>
+                                    <div id="appsList" class="apps-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card shadow-sm border-0 h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="icon-circle primary-light me-3">
+                                            <i class="bi bi-bar-chart text-primary"></i>
+                                        </div>
+                                        <h6 class="card-title mb-0">Activity by Hour</h6>
+                                    </div>
+                                    <div id="hourChart" class="hour-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-error d-none">
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <span id="errorMessage">Error generating summary.</span>
+                    </div>
+                </div>
+                
+                <!-- AI Analysis Section -->
+                <div class="ai-analysis-section mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0"><i class="bi bi-robot me-2"></i>AI Analysis</h6>
+                        <button type="button" class="btn btn-sm btn-primary" id="analyzeWithAiBtn">
+                            <i class="bi bi-magic me-1"></i>Analyze All Interactions
+                        </button>
+                    </div>
+                    
+                    <div class="ai-analysis-info alert alert-info d-flex align-items-start mb-3">
+                        <i class="bi bi-info-circle me-2 mt-1"></i>
+                        <div>
+                            This will send all interactions (input text, output text, and application data) from this day to the AI for comprehensive analysis.
+                        </div>
+                    </div>
+                    
+                    <div class="ai-analysis-loading text-center py-3 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Analyzing all interactions with AI...</p>
+                    </div>
+                    
+                    <div class="ai-analysis-content d-none">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="aiAnalysisText" class="white-space-pre-wrap"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-analysis-error d-none">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            <span id="aiErrorMessage">Unable to generate AI analysis.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -342,6 +516,116 @@
             padding: 12px 14px;
         }
     }
+    
+    /* Day Summary styles */
+    .apps-list {
+        margin-top: 15px;
+    }
+    
+    .app-usage-item {
+        display: flex;
+        margin-bottom: 12px;
+        align-items: center;
+    }
+    
+    .app-usage-name {
+        flex: 1;
+        margin-right: 10px;
+        font-size: 13px;
+    }
+    
+    .app-usage-bar {
+        background-color: var(--history-primary-light);
+        height: 8px;
+        border-radius: 4px;
+        transition: width 0.5s ease-in-out;
+    }
+    
+    .hour-chart {
+        margin-top: 15px;
+        height: 160px;
+    }
+    
+    .hour-bar-container {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 120px;
+    }
+    
+    .hour-bar-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 12px;
+    }
+    
+    .hour-bar {
+        width: 8px;
+        background-color: rgba(var(--primary-color-rgb), 0.6);
+        border-radius: 4px 4px 0 0;
+        transition: height 0.5s ease-in-out;
+    }
+    
+    .hour-bar:hover {
+        background-color: var(--history-primary);
+        cursor: pointer;
+    }
+    
+    .hour-bar.busiest-hour {
+        background-color: var(--accent-color);
+        position: relative;
+    }
+    
+    .hour-bar.busiest-hour:after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 5px;
+        height: 5px;
+        background-color: var(--accent-color);
+        border-radius: 50%;
+    }
+    
+    .hour-label {
+        font-size: 9px;
+        color: #666;
+        margin-top: 5px;
+        transform: rotate(-45deg);
+        white-space: nowrap;
+    }
+    
+    .generate-summary-btn {
+        white-space: nowrap;
+    }
+    
+    /* Icon styling */
+    .icon-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+    }
+    
+    .icon-circle.primary-light {
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+    }
+    
+    .icon-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--bs-light);
+        color: var(--history-primary);
+    }
 </style>
 
 <script>
@@ -361,6 +645,301 @@
                 copyBtn.classList.add('btn-outline-primary');
             }, 2000);
         });
+    }
+    
+    // Day Summary functionality
+    document.getElementById('generateSummaryBtn').addEventListener('click', function() {
+        // Get the date from the currently selected days option
+        let date = new Date();
+        
+        // Show modal and start loading
+        const summaryModal = new bootstrap.Modal(document.getElementById('summaryModal'));
+        summaryModal.show();
+        
+        showSummaryLoading();
+        
+        // Get the current date in YYYY-MM-DD format
+        let dateString = date.toISOString().split('T')[0];
+        
+        // Fetch summary data
+        fetch(`/history/summary?date=${dateString}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading, show content
+                hideSummaryLoading();
+                showSummaryContent();
+                
+                // Populate summary data
+                populateSummaryData(data);
+            })
+            .catch(error => {
+                // Show error message
+                hideSummaryLoading();
+                showSummaryError(error.message);
+            });
+    });
+
+    function showSummaryLoading() {
+        document.querySelector('.summary-loading').classList.remove('d-none');
+        document.querySelector('.summary-content').classList.add('d-none');
+        document.querySelector('.summary-error').classList.add('d-none');
+    }
+
+    function hideSummaryLoading() {
+        document.querySelector('.summary-loading').classList.add('d-none');
+    }
+
+    function showSummaryContent() {
+        document.querySelector('.summary-content').classList.remove('d-none');
+    }
+
+    function showSummaryError(message) {
+        document.querySelector('.summary-error').classList.remove('d-none');
+        document.getElementById('errorMessage').textContent = message || 'Error generating summary.';
+    }
+
+    let currentSummaryData = null; // Store the current summary data
+    
+    function populateSummaryData(data) {
+        // Store the current summary data for AI analysis
+        currentSummaryData = data;
+        
+        // Basic info
+        document.getElementById('summaryDate').textContent = data.date;
+        document.getElementById('totalInteractions').textContent = data.total_interactions;
+        document.getElementById('avgInputLengthBadge').textContent = data.average_input_length;
+        document.getElementById('avgOutputLengthBadge').textContent = data.average_output_length;
+        
+        // Calculate progress bar values - scale appropriately based on max length
+        // We'll consider anything over 1000 chars as 100%
+        const maxLength = Math.max(data.average_input_length, data.average_output_length, 1000);
+        const inputLengthProgress = Math.min(Math.floor((data.average_input_length / maxLength) * 100), 100);
+        const outputLengthProgress = Math.min(Math.floor((data.average_output_length / maxLength) * 100), 100);
+        
+        // Add animation delay to make the transition visible
+        setTimeout(() => {
+            document.getElementById('inputLengthProgress').style.width = `${inputLengthProgress}%`;
+            document.getElementById('outputLengthProgress').style.width = `${outputLengthProgress}%`;
+        }, 200);
+        
+        // Busiest hour (formatted as 24-hour)
+        if (data.busiest_hour !== null) {
+            const hour = data.busiest_hour;
+            document.getElementById('busiestHour').textContent = `${hour}:00 - ${hour}:59`;
+        } else {
+            document.getElementById('busiestHour').textContent = 'N/A';
+        }
+        
+        // Apps usage
+        const appsListEl = document.getElementById('appsList');
+        appsListEl.innerHTML = '';
+        
+        // Get max usage value for scaling
+        const maxAppUsage = Object.values(data.apps).length > 0 ? 
+            Math.max(...Object.values(data.apps)) : 0;
+        
+        // Add app usage items (limit to top 5)
+        const appEntries = Object.entries(data.apps).slice(0, 5);
+        
+        // Add a slight delay for each app bar to create a staggered animation
+        appEntries.forEach(([appName, count], index) => {
+            const percentage = maxAppUsage > 0 ? 
+                Math.floor((count / maxAppUsage) * 100) : 0;
+            
+            const appItem = document.createElement('div');
+            appItem.className = 'app-usage-item';
+            appItem.innerHTML = `
+                <div class="app-usage-name">${appName} <span class="badge bg-light text-dark rounded-pill ms-1">${count}</span></div>
+                <div class="app-usage-bar" style="width: 0%"></div>
+            `;
+            appsListEl.appendChild(appItem);
+            
+            // Staggered animation for bars
+            setTimeout(() => {
+                appItem.querySelector('.app-usage-bar').style.width = `${percentage}%`;
+            }, 200 + (index * 100));
+        });
+        
+        // Hour distribution chart
+        const hourChartEl = document.getElementById('hourChart');
+        hourChartEl.innerHTML = '';
+        
+        // Create hours container
+        const hoursContainer = document.createElement('div');
+        hoursContainer.className = 'hour-bar-container';
+        
+        // Get max hour count for scaling
+        const hourValues = Object.values(data.hour_distribution);
+        const maxHourCount = hourValues.length > 0 ? 
+            Math.max(...hourValues) : 0;
+        
+        // Add hour bars (showing all 24 hours)
+        for (let i = 0; i < 24; i++) {
+            const count = data.hour_distribution[i] || 0;
+            const percentage = maxHourCount > 0 ? 
+                Math.floor((count / maxHourCount) * 100) : 0;
+            
+            // Format hour label for better readability    
+            const hourLabel = i < 10 ? `0${i}:00` : `${i}:00`;
+            
+            const hourWrapper = document.createElement('div');
+            hourWrapper.className = 'hour-bar-wrapper';
+            
+            const hourBar = document.createElement('div');
+            hourBar.className = 'hour-bar';
+            
+            // Add an initial height for animation
+            hourBar.style.height = '1px';
+            
+            // Add tooltip with count information
+            hourBar.setAttribute('data-bs-toggle', 'tooltip');
+            hourBar.setAttribute('data-bs-placement', 'top');
+            hourBar.setAttribute('title', `${count} interaction${count !== 1 ? 's' : ''}`);
+            
+            // Add active hour highlight
+            if (data.busiest_hour === i) {
+                hourBar.classList.add('busiest-hour');
+            }
+            
+            const hourLabelEl = document.createElement('div');
+            hourLabelEl.className = 'hour-label';
+            hourLabelEl.textContent = hourLabel;
+            
+            hourWrapper.appendChild(hourBar);
+            hourWrapper.appendChild(hourLabelEl);
+            hoursContainer.appendChild(hourWrapper);
+            
+            // Staggered animation for hour bars
+            setTimeout(() => {
+                hourBar.style.height = percentage > 0 ? `${percentage}%` : '1px';
+            }, 200 + (i * 30)); // Slight delay for each bar
+        }
+        
+        hourChartEl.appendChild(hoursContainer);
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(hourChartEl.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // AI Analysis functionality
+    document.getElementById('analyzeWithAiBtn').addEventListener('click', function() {
+        if (!currentSummaryData) {
+            showAiAnalysisError('No summary data available. Please generate a summary first.');
+            return;
+        }
+        
+        // Show loading state
+        showAiAnalysisLoading();
+        
+        // Send request to analyze summary
+        fetch('/history/summary/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(currentSummaryData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Hide loading, show content
+            hideAiAnalysisLoading();
+            
+            if (data.error) {
+                showAiAnalysisError(data.error);
+            } else {
+                showAiAnalysisContent(data.analysis);
+            }
+        })
+        .catch(error => {
+            // Show error message
+            hideAiAnalysisLoading();
+            showAiAnalysisError(error.message);
+        });
+    });
+    
+    function showAiAnalysisLoading() {
+        document.querySelector('.ai-analysis-loading').classList.remove('d-none');
+        document.querySelector('.ai-analysis-content').classList.add('d-none');
+        document.querySelector('.ai-analysis-error').classList.add('d-none');
+    }
+    
+    function hideAiAnalysisLoading() {
+        document.querySelector('.ai-analysis-loading').classList.add('d-none');
+    }
+    
+    function showAiAnalysisContent(text) {
+        document.querySelector('.ai-analysis-content').classList.remove('d-none');
+        
+        // Add Bootstrap classes for section headers
+        let formattedText = text
+            // Format section headers
+            .replace(/SECTION 1 - USAGE ANALYSIS:/g, '<h5 class="mt-2 mb-3 text-primary">USAGE ANALYSIS</h5>')
+            .replace(/SECTION 2 - DAILY WORK REPORT:/g, '<h5 class="mt-4 mb-3 text-primary">DAILY WORK REPORT</h5>')
+            
+            // Format other headers that may appear
+            .replace(/^(#+)\s+(.*?)$/gm, function(match, hashes, content) {
+                const level = hashes.length + 5; // h5 or h6
+                return `<h${level} class="mt-3 mb-2">${content}</h${level}>`;
+            })
+            
+            // Basic markdown formatting
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            
+            // Format numbered lists
+            .replace(/(\d+\.\s+)(.*?)(<br>)/g, '<div class="ms-2 mb-1">$1$2</div>$3');
+            
+        document.getElementById('aiAnalysisText').innerHTML = formattedText;
+        
+        // Add copy button for the work report section
+        const aiAnalysisEl = document.getElementById('aiAnalysisText');
+        const workReportSection = aiAnalysisEl.innerHTML.split('<h5 class="mt-4 mb-3 text-primary">DAILY WORK REPORT</h5>')[1];
+        
+        if (workReportSection) {
+            // Add a button to copy just the work report part
+            const copyButton = document.createElement('button');
+            copyButton.className = 'btn btn-sm btn-outline-primary mt-2';
+            copyButton.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy Work Report';
+            copyButton.onclick = function() {
+                // Extract the work report text without HTML tags
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = workReportSection;
+                const plainText = tempDiv.textContent || tempDiv.innerText || '';
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(plainText.trim()).then(function() {
+                    copyButton.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
+                    setTimeout(function() {
+                        copyButton.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy Work Report';
+                    }, 2000);
+                });
+            };
+            
+            // Insert copy button after the work report heading
+            const workReportHeading = aiAnalysisEl.querySelector('h5:nth-of-type(2)');
+            if (workReportHeading) {
+                workReportHeading.insertAdjacentElement('afterend', copyButton);
+            }
+        }
+    }
+    
+    function showAiAnalysisError(message) {
+        document.querySelector('.ai-analysis-error').classList.remove('d-none');
+        document.getElementById('aiErrorMessage').textContent = message || 'Unable to generate AI analysis.';
     }
 </script>
 {% endblock %}
