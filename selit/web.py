@@ -66,6 +66,15 @@ class DeletePromptForm(FlaskForm):
     window_identifier = HiddenField('Window Identifier', validators=[DataRequired()])
     submit = SubmitField('Delete')
 
+class KeywordTriggerForm(FlaskForm):
+    keyword = StringField('Trigger Keyword', validators=[DataRequired()])
+    prompt_text = TextAreaField('Prompt Template', validators=[DataRequired()])
+    submit = SubmitField('Save Keyword Trigger')
+
+class DeleteKeywordTriggerForm(FlaskForm):
+    keyword = HiddenField('Keyword', validators=[DataRequired()])
+    submit = SubmitField('Delete')
+
 def get_all_windows():
     """Get a list of all visible windows with their titles and process names."""
     return get_window_info(get_active_only=False)
@@ -120,15 +129,25 @@ def settings():
 def prompts():
     prompt_form = PromptForm()
     delete_form = DeletePromptForm()
+    keyword_trigger_form = KeywordTriggerForm()
+    delete_keyword_trigger_form = DeleteKeywordTriggerForm()
     return render_template('prompts.html', 
                           prompts=prompt_manager.prompts, 
+                          keyword_triggers=prompt_manager.keyword_triggers,
                           prompt_form=prompt_form,
-                          delete_form=delete_form)
+                          delete_form=delete_form,
+                          keyword_trigger_form=keyword_trigger_form,
+                          delete_keyword_trigger_form=delete_keyword_trigger_form)
 
 @app.route('/prompts/add_page', methods=['GET'])
 def add_prompt_page():
     form = PromptForm()
     return render_template('add_prompt.html', form=form)
+
+@app.route('/prompts/add_keyword_trigger_page', methods=['GET'])
+def add_keyword_trigger_page():
+    form = KeywordTriggerForm()
+    return render_template('add_keyword_trigger.html', form=form)
 
 @app.route('/prompts/add', methods=['POST'])
 def add_prompt():
@@ -172,6 +191,60 @@ def delete_prompt():
             flash(f'Failed to delete prompt for "{window_identifier}"', 'danger')
     return redirect(url_for('prompts'))
 
+@app.route('/prompts/add_keyword_trigger', methods=['POST'])
+def add_keyword_trigger():
+    form = KeywordTriggerForm()
+    if form.validate_on_submit():
+        keyword = form.keyword.data
+        prompt_text = form.prompt_text.data
+        if prompt_manager.add_keyword_trigger(keyword, prompt_text):
+            flash(f'Keyword trigger "{keyword}" added successfully', 'success')
+        else:
+            flash('Failed to add keyword trigger', 'danger')
+    return redirect(url_for('prompts'))
+
+@app.route('/prompts/delete_keyword_trigger', methods=['POST'])
+def delete_keyword_trigger():
+    form = DeleteKeywordTriggerForm()
+    if form.validate_on_submit():
+        keyword = form.keyword.data
+        if prompt_manager.remove_keyword_trigger(keyword):
+            flash(f'Keyword trigger "{keyword}" deleted successfully', 'success')
+        else:
+            flash('Failed to delete keyword trigger', 'danger')
+    return redirect(url_for('prompts'))
+
+@app.route('/prompts/edit_keyword_trigger/<keyword>', methods=['GET'])
+def edit_keyword_trigger(keyword):
+    """Edit a keyword trigger prompt."""
+    if keyword in prompt_manager.keyword_triggers:
+        form = KeywordTriggerForm()
+        form.keyword.data = keyword
+        form.prompt_text.data = prompt_manager.keyword_triggers[keyword]['prompt']
+        return render_template('edit_keyword_trigger.html', form=form, keyword=keyword)
+    else:
+        flash(f'Keyword trigger "{keyword}" not found', 'danger')
+        return redirect(url_for('prompts'))
+
+@app.route('/prompts/update_keyword_trigger/<keyword>', methods=['POST'])
+def update_keyword_trigger(keyword):
+    """Update a keyword trigger prompt."""
+    form = KeywordTriggerForm()
+    if form.validate_on_submit():
+        new_keyword = form.keyword.data
+        prompt_text = form.prompt_text.data
+        
+        # If the keyword has changed, we need to remove the old one and add a new one
+        if keyword != new_keyword:
+            prompt_manager.remove_keyword_trigger(keyword)
+        
+        if prompt_manager.add_keyword_trigger(new_keyword, prompt_text):
+            flash(f'Keyword trigger "{new_keyword}" updated successfully', 'success')
+        else:
+            flash('Failed to update keyword trigger', 'danger')
+    
+    return redirect(url_for('prompts'))
+
 @app.route('/history')
 def history():
     # Get the number of days from request, default to 1 (today only)
@@ -201,6 +274,8 @@ def generate_prompt():
     data = request.json
     context = data.get('context', '')
     window_identifier = data.get('window_identifier', '')
+    is_keyword_trigger = data.get('is_keyword_trigger', False)
+    keyword = data.get('keyword', '')
     
     if not context:
         return jsonify({
@@ -212,18 +287,32 @@ def generate_prompt():
         ai_service = config_manager.get_ai_service()
         
         # Prepare the system prompt for generating a template
-        system_prompt = f"""
-        I need to create a prompt template for an AI assistant. Here's the context:
-        
-        - Application/Window: {window_identifier}
-        - Context: {context}
-        
-        Please generate a well-structured prompt template that I can use for this application.
-        The template should include placeholder {{text}} where the user's input will be inserted.
-        Make the prompt clear, specific, and optimized for good AI responses.
-        
-        Return ONLY the prompt template text without any explanations or additional text.
-        """
+        if is_keyword_trigger:
+            system_prompt = f"""
+            I need to create a prompt template for an AI assistant that will be triggered by a specific keyword. Here's the context:
+            
+            - Trigger keyword: {keyword}
+            - Use case context: {context}
+            
+            Please generate a well-structured prompt template that will be triggered when this keyword is found in copied text.
+            The template should include placeholder {{text}} where the user's input will be inserted.
+            Make the prompt clear, specific, and optimized for good AI responses related to the keyword "{keyword}".
+            
+            Return ONLY the prompt template text without any explanations or additional text.
+            """
+        else:
+            system_prompt = f"""
+            I need to create a prompt template for an AI assistant. Here's the context:
+            
+            - Application/Window: {window_identifier}
+            - Context: {context}
+            
+            Please generate a well-structured prompt template that I can use for this application.
+            The template should include placeholder {{text}} where the user's input will be inserted.
+            Make the prompt clear, specific, and optimized for good AI responses.
+            
+            Return ONLY the prompt template text without any explanations or additional text.
+            """
         
         if ai_service == "gemini":
             api = GeminiAPI()

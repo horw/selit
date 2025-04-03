@@ -5,61 +5,109 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">
-                <i class="bi bi-clock-history me-2 text-primary"></i>
-                Call History
-            </h5>
-            <form action="{{ url_for('history') }}" method="get">
-                <select id="days-select" name="days" class="form-select form-select-sm" style="width: 100px" onchange="this.form.submit()">
-                    <option value="1" {% if days == 1 %}selected{% endif %}>Today</option>
-                    <option value="3" {% if days == 3 %}selected{% endif %}>3 days</option>
-                    <option value="7" {% if days == 7 %}selected{% endif %}>Week</option>
-                    <option value="30" {% if days == 30 %}selected{% endif %}>Month</option>
-                </select>
-            </form>
+        <div class="card border-0 shadow mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="me-3 mb-2 mb-md-0">
+                        <h4 class="mb-1 d-flex align-items-center">
+                            <span class="icon-circle me-3">
+                                <i class="bi bi-clock-history"></i>
+                            </span>
+                            Call History
+                        </h4>
+                        <p class="text-muted mb-0 small">Your recent interactions with Select it!</p>
+                    </div>
+                    <form action="{{ url_for('history') }}" method="get" class="d-flex align-items-center mb-2 mb-md-0">
+                        <div class="time-filter-wrapper">
+                            <label for="days-select" class="form-label mb-0 me-2 text-nowrap small fw-medium">Time Range:</label>
+                            <select id="days-select" name="days" class="form-select form-select-sm" style="min-width: 140px" onchange="this.form.submit()">
+                                <option value="1" {% if days == 1 %}selected{% endif %}>Today</option>
+                                <option value="3" {% if days == 3 %}selected{% endif %}>Last 3 days</option>
+                                <option value="7" {% if days == 7 %}selected{% endif %}>Last week</option>
+                                <option value="30" {% if days == 30 %}selected{% endif %}>Last month</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
             
         {% if history %}
             <div class="history-container">
                 {% for entry in history %}
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-header bg-white py-2 px-3 d-flex align-items-center">
-                        <small class="text-muted me-3">{{ entry.timestamp | datetime }}</small>
-                        <small class="text-muted text-truncate"><i class="bi bi-window me-1"></i>{{ entry.window.process_name }} | {{ entry.window.title}}</small>
-                        <code class="ms-auto">{{ entry.trigger_word }}</code>
+                <div class="card history-card border-0 shadow-sm mb-4 position-relative overflow-hidden">
+                    <div class="card-header bg-white py-3 px-4 d-flex flex-wrap align-items-center border-0">
+                        <div class="me-auto">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="time-badge me-2">
+                                    <i class="bi bi-calendar-event"></i>
+                                </div>
+                                <span class="fw-medium text-dark">{{ entry.timestamp | datetime }}</span>
+                            </div>
+                            <div class="d-flex align-items-center flex-wrap">
+                                <div class="app-badge-container d-flex align-items-center me-3 mb-1">
+                                    <div class="app-badge me-2">
+                                        <i class="bi bi-window"></i>
+                                    </div>
+                                    <span class="text-truncate fw-medium">{{ entry.window.process_name }}</span>
+                                </div>
+                                <span class="text-muted text-truncate window-title mb-1">{{ entry.window.title}}</span>
+                            </div>
+                        </div>
+                        <div class="trigger-wrapper ms-2 mt-2 mt-md-0">
+                            <span class="trigger-badge">
+                                <i class="bi bi-magic me-1"></i>{{ entry.trigger_word }}
+                            </span>
+                        </div>
                     </div>
-                    <div class="card-body p-3">
-                        <div class="row g-3">
+                    <div class="card-body p-4">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="border-start border-primary ps-2">
-                                    <div class="small text-muted mb-1">Input</div>
-                                    <div class="bg-light rounded p-2">
-                                        <pre class="mb-0" style="white-space: pre-wrap; max-height: 100px; overflow-y: auto;">{{ entry.input }}</pre>
+                                <div class="content-box input-box">
+                                    <div class="content-header">
+                                        <i class="bi bi-arrow-right-circle me-2"></i>
+                                        <span>Input</span>
+                                    </div>
+                                    <div class="content-body">
+                                        <pre>{{ entry.input }}</pre>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="border-start border-success ps-2">
-                                    <div class="small text-muted mb-1">Output</div>
-                                    <div class="bg-light rounded p-2">
-                                        <pre class="mb-0" style="white-space: pre-wrap; max-height: 100px; overflow-y: auto;">{{ entry.output }}</pre>
+                                <div class="content-box output-box">
+                                    <div class="content-header">
+                                        <i class="bi bi-arrow-left-circle me-2"></i>
+                                        <span>Output</span>
+                                    </div>
+                                    <div class="content-body">
+                                        <pre>{{ entry.output }}</pre>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <div class="card-footer bg-white border-0 p-3 text-end">
+                        <button type="button" class="btn btn-sm btn-outline-primary copy-btn" onclick="copyToClipboard('{{ entry.output|replace("'", "\\'") }}')">
+                            <i class="bi bi-clipboard me-1"></i>Copy Output
+                        </button>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
         {% else %}
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-clock-history text-muted fs-4 mb-2 opacity-50"></i>
-                    <p class="mb-1">No call history available</p>
-                    <small class="text-muted">
-                        History will appear when you use Select it! with your trigger word magic
-                    </small>
+            <div class="card border-0 shadow-sm empty-history-card">
+                <div class="card-body py-5 text-center">
+                    <div class="empty-state-icon mb-4">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h5 class="mb-3">No History Available Yet</h5>
+                    <p class="text-muted mb-4 px-md-5 mx-md-5">
+                        Your interactions will appear here after you use Select it! with your trigger word.
+                        <br>Try using your assistant to see your history populate!
+                    </p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="bi bi-house-door me-1"></i>Back to Dashboard
+                    </a>
                 </div>
             </div>
         {% endif %}
@@ -69,10 +117,21 @@
 
 {% block scripts %}
 <style>
+    /* Color variables */
+    :root {
+        --history-primary: var(--primary-color);
+        --history-secondary: var(--accent-color);
+        --history-success: var(--success-color);
+        --card-border-radius: 14px;
+    }
+    
+    /* Container styling */
     .history-container {
         max-height: 80vh;
         overflow-y: auto;
-        padding-right: 5px;
+        padding-right: 10px;
+        -ms-overflow-style: none;
+        scrollbar-width: thin;
     }
     
     .history-container::-webkit-scrollbar {
@@ -80,7 +139,7 @@
     }
     
     .history-container::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: #f8f9fa;
         border-radius: 10px;
     }
     
@@ -89,18 +148,219 @@
         border-radius: 10px;
     }
     
+    .history-container::-webkit-scrollbar-thumb:hover {
+        background: #bbb;
+    }
+    
+    /* Card styling */
+    .history-card {
+        transition: all 0.25s ease;
+        border-radius: var(--card-border-radius) !important;
+        position: relative;
+    }
+    
+    .card-header, .card-body, .card-footer {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Badge styling */
+    .icon-circle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--history-primary), var(--history-secondary));
+        color: white;
+        border-radius: 50%;
+        font-size: 18px;
+    }
+    
+    .time-filter-wrapper {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .time-badge, .app-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: 12px;
+    }
+    
+    .time-badge {
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--history-primary);
+    }
+    
+    .app-badge {
+        background-color: rgba(76, 201, 240, 0.1);
+        color: var(--history-secondary);
+    }
+    
+    .app-badge-container {
+        padding: 4px 0;
+    }
+    
+    .window-title {
+        max-width: 250px;
+    }
+    
+    .trigger-badge {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+        color: var(--history-primary);
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 85%;
+        padding: 6px 12px;
+    }
+    
+    .trigger-wrapper {
+        position: relative;
+    }
+    
+    /* Content boxes */
+    .content-box {
+        border-radius: 14px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+    
+    .content-box:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .input-box {
+        border-left: 3px solid var(--history-primary);
+    }
+    
+    .output-box {
+        border-left: 3px solid var(--history-success);
+    }
+    
+    .content-header {
+        font-weight: 500;
+        padding: 10px 15px;
+        border-top-left-radius: 14px;
+        border-top-right-radius: 14px;
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        color: #444;
+        font-size: 14px;
+    }
+    
+    .input-box .content-header i {
+        color: var(--history-primary);
+    }
+    
+    .output-box .content-header i {
+        color: var(--history-success);
+    }
+    
+    .content-body {
+        padding: 15px 18px;
+        background-color: #f8f9fa;
+        border-bottom-left-radius: 14px;
+        border-bottom-right-radius: 14px;
+        flex-grow: 1;
+        overflow: auto;
+    }
+    
+    /* Text styling */
     pre {
         font-family: var(--bs-font-sans-serif);
         font-size: 0.9rem;
         background-color: transparent;
         margin-bottom: 0;
+        white-space: pre-wrap;
+        max-height: 180px;
+        overflow-y: auto;
+        color: #333;
     }
     
-    code {
-        background-color: #f8f9fa;
-        padding: 2px 5px;
-        border-radius: 3px;
-        font-size: 85%;
+    .fw-medium {
+        font-weight: 500;
+    }
+    
+    /* Empty state */
+    .empty-history-card {
+        border-radius: var(--card-border-radius) !important;
+    }
+    
+    .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--history-primary);
+        font-size: 32px;
+        margin-bottom: 16px;
+    }
+    
+    /* Copy button */
+    .copy-btn {
+        border-radius: 20px;
+        font-size: 0.85rem;
+        padding: 4px 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .copy-btn:hover {
+        background-color: var(--history-primary);
+        color: white;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .icon-circle {
+            width: 35px;
+            height: 35px;
+            font-size: 16px;
+        }
+        
+        .window-title {
+            max-width: 200px;
+        }
+        
+        .content-body {
+            padding: 12px 14px;
+        }
     }
 </style>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            // Show feedback (could add a toast notification here)
+            const copyBtn = event.target.closest('.copy-btn');
+            const originalText = copyBtn.innerHTML;
+            
+            copyBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
+            copyBtn.classList.add('btn-success');
+            copyBtn.classList.remove('btn-outline-primary');
+            
+            setTimeout(function() {
+                copyBtn.innerHTML = originalText;
+                copyBtn.classList.remove('btn-success');
+                copyBtn.classList.add('btn-outline-primary');
+            }, 2000);
+        });
+    }
+</script>
 {% endblock %}

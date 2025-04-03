@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Select it! - Edit Keyword Trigger{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-pencil-square feature-icon me-2 fs-4"></i>
+                <h2 class="mb-0">Edit Keyword Trigger</h2>
+            </div>
+            <div class="card-body p-4">
+                <p class="lead mb-4">
+                    You're editing the prompt that will be triggered when the keyword <strong>"{{ keyword }}"</strong> is found in copied text.
+                </p>
+                
+                <form method="POST" action="{{ url_for('update_keyword_trigger', keyword=keyword) }}" id="keywordTriggerForm">
+                    {{ form.csrf_token }}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5><i class="bi bi-lightbulb text-warning me-2"></i>AI Assistant</h5>
+                                    <p class="text-muted mb-3">
+                                        Tell the AI what you want to do with this keyword trigger, and it will help you create an optimized prompt.
+                                    </p>
+                                    <div class="mb-3">
+                                        <label for="contextForAI" class="form-label">What should this keyword trigger do?</label>
+                                        <textarea id="contextForAI" class="form-control" rows="2" placeholder="e.g., When I type 'translate', translate text to Spanish"></textarea>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <button type="button" id="generatePromptBtn" class="btn btn-primary">
+                                            <i class="bi bi-magic me-1"></i> Generate with AI
+                                        </button>
+                                        <div id="aiGenerateStatus" class="ms-3" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="keyword" class="form-label fw-semibold">
+                            <i class="bi bi-key me-2"></i>{{ form.keyword.label }}
+                        </label>
+                        {{ form.keyword(class="form-control", placeholder="e.g., translate, summarize, grammar") }}
+                        {% if form.keyword.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.keyword.errors %}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            The keyword that will trigger this prompt when found in copied text
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="prompt_text" class="form-label fw-semibold">
+                            <i class="bi bi-chat-text me-2"></i>{{ form.prompt_text.label }}
+                        </label>
+                        {{ form.prompt_text(class="form-control", rows=5, placeholder="Enter prompt template. Use {text} to insert copied text.") }}
+                        {% if form.prompt_text.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.prompt_text.errors %}
+                                    <i class="bi bi-exclamation-triangle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Use {text} as a placeholder where the copied text will be inserted
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('prompts') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Prompts
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const keywordInput = document.getElementById('keyword');
+    const promptTextInput = document.getElementById('prompt_text');
+    const contextForAI = document.getElementById('contextForAI');
+    const generatePromptBtn = document.getElementById('generatePromptBtn');
+    const aiGenerateStatus = document.getElementById('aiGenerateStatus');
+    
+    // Generate prompt with AI
+    generatePromptBtn.addEventListener('click', function() {
+        const context = contextForAI.value.trim();
+        const keyword = keywordInput.value.trim();
+        
+        if (!context) {
+            aiGenerateStatus.innerHTML = `
+                <span class="text-warning">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Please describe what you want to do.
+                </span>
+            `;
+            aiGenerateStatus.style.display = 'block';
+            return;
+        }
+        
+        aiGenerateStatus.innerHTML = `
+            <span class="text-primary">
+                <div class="spinner-border spinner-border-sm me-1" role="status"></div>
+                Creating prompt...
+            </span>
+        `;
+        aiGenerateStatus.style.display = 'block';
+        
+        fetch('/api/generate-prompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                context: context,
+                keyword: keyword,
+                is_keyword_trigger: true
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                promptTextInput.value = data.prompt;
+                promptTextInput.focus();
+                
+                // Subtle highlight
+                promptTextInput.classList.add('subtle-highlight');
+                setTimeout(() => {
+                    promptTextInput.classList.remove('subtle-highlight');
+                }, 1000);
+                
+                aiGenerateStatus.innerHTML = `
+                    <span class="text-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Prompt created successfully.
+                    </span>
+                `;
+            } else {
+                aiGenerateStatus.innerHTML = `
+                    <span class="text-danger">
+                        <i class="bi bi-exclamation-circle me-1"></i>
+                        ${data.message || 'Error generating prompt.'}
+                    </span>
+                `;
+            }
+        })
+        .catch(error => {
+            aiGenerateStatus.innerHTML = `
+                <span class="text-danger">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    Network error. Please try again.
+                </span>
+            `;
+            console.error('Error:', error);
+        });
+    });
+});
+</script>
+
+<style>
+    .subtle-highlight {
+        background-color: rgba(25, 135, 84, 0.1);
+        transition: background-color 1s;
+    }
+</style>
+{% endblock %}

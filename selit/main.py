@@ -66,6 +66,10 @@ class PromptManager:
         self.prompts_file = prompts_file or get_prompts_path()
         self.prompts = self._load_prompts()
         self.config_manager = ConfigManager()
+        # Add a section for keyword-triggered prompts (works across all windows)
+        self.keyword_triggers = self.prompts.get('keyword_triggers', {})
+        if 'keyword_triggers' not in self.prompts:
+            self.prompts['keyword_triggers'] = {}
 
     def _load_prompts(self):
         """Load prompts from the JSON file."""
@@ -106,16 +110,43 @@ class PromptManager:
 
         print("\nAvailable prompts:")
         print("-" * 50)
+        # Show window-specific prompts
         for key, prompt in self.prompts.items():
-            print(f"Window identifier: {key}")
-            print(f"Prompt: {prompt[:50]}..." if len(prompt) > 50 else f"Prompt: {prompt}")
+            if key != 'keyword_triggers':  # Skip keyword triggers section
+                print(f"Window identifier: {key}")
+                print(f"Prompt: {prompt[:50]}..." if len(prompt) > 50 else f"Prompt: {prompt}")
+                print("-" * 50)
+        
+        # Show keyword triggers
+        if self.keyword_triggers:
+            print("\nKeyword triggers (works in all windows):")
             print("-" * 50)
+            for keyword, prompt_info in self.keyword_triggers.items():
+                print(f"Trigger word: {keyword}")
+                prompt = prompt_info.get('prompt', '')
+                print(f"Prompt: {prompt[:50]}..." if len(prompt) > 50 else f"Prompt: {prompt}")
+                print("-" * 50)
 
     def add_prompt(self, window_identifier, prompt_text):
         """Add or update a prompt."""
         self.prompts[window_identifier] = prompt_text
         if self._save_prompts():
             print(f"Prompt for '{window_identifier}' added successfully.")
+            return True
+        return False
+    
+    def add_keyword_trigger(self, keyword, prompt_text):
+        """Add or update a keyword trigger prompt that works in all windows."""
+        if 'keyword_triggers' not in self.prompts:
+            self.prompts['keyword_triggers'] = {}
+        
+        self.prompts['keyword_triggers'][keyword] = {
+            'prompt': prompt_text
+        }
+        self.keyword_triggers = self.prompts['keyword_triggers']
+        
+        if self._save_prompts():
+            print(f"Keyword trigger '{keyword}' added successfully.")
             return True
         return False
 
@@ -129,14 +160,42 @@ class PromptManager:
         else:
             print(f"No prompt found for '{window_identifier}'.")
         return False
+    
+    def remove_keyword_trigger(self, keyword):
+        """Remove a keyword trigger."""
+        if 'keyword_triggers' in self.prompts and keyword in self.prompts['keyword_triggers']:
+            del self.prompts['keyword_triggers'][keyword]
+            self.keyword_triggers = self.prompts['keyword_triggers']
+            if self._save_prompts():
+                print(f"Keyword trigger '{keyword}' removed successfully.")
+                return True
+        else:
+            print(f"No keyword trigger found for '{keyword}'.")
+        return False
 
     def get_prompt_for_window(self, window_info):
         """Get the appropriate prompt for the current window."""
         for key in sorted(self.prompts, key=lambda k: -len(k)):
-            if key in window_info['title'] or key in window_info['process_name']:
+            # Skip the keyword_triggers section when checking for window matches
+            if key != 'keyword_triggers' and (key in window_info['title'] or key in window_info['process_name']):
                 return self.prompts[key]
         # If no prompt matches, return the default prompt from configuration
         return self.config_manager.get_default_prompt()
+    
+    def find_keyword_trigger(self, text):
+        """
+        Check if the text contains any registered keyword triggers.
+        
+        Args:
+            text (str): The text to check
+            
+        Returns:
+            tuple: (keyword, prompt) if a match is found, otherwise (None, None)
+        """
+        for keyword, prompt_info in self.keyword_triggers.items():
+            if keyword in text:
+                return keyword, prompt_info.get('prompt')
+        return None, None
 
 
 class ConfigManager:
@@ -482,32 +541,44 @@ def process_call(window_info, current_clipboard):
 
     config_manager = ConfigManager()
     trigger_word = config_manager.get_trigger_word()
+    prompt_manager = PromptManager()
     
-    if trigger_word not in current_clipboard:
-        return current_clipboard
+    # Check for trigger word
+    if trigger_word in current_clipboard:
+        original_input = current_clipboard
+        current_clipboard = current_clipboard.replace(trigger_word, "")
+        # Get window-specific prompt or default
+        prompt = prompt_manager.get_prompt_for_window(window_info)
+        return process_with_prompt(window_info, current_clipboard, original_input, prompt, trigger_word)
     
-    original_input = current_clipboard
-    current_clipboard = current_clipboard.replace(trigger_word, "")
+    # Check for keyword triggers
+    keyword, keyword_prompt = prompt_manager.find_keyword_trigger(current_clipboard)
+    if keyword and keyword_prompt:
+        original_input = current_clipboard
+        current_clipboard = current_clipboard.replace(keyword, "")
+        return process_with_prompt(window_info, current_clipboard, original_input, keyword_prompt, keyword)
+    
+    # No triggers found
+    return current_clipboard
 
+def process_with_prompt(window_info, text, original_input, prompt, trigger_word):
+    """Process text with a specific prompt using the configured AI service."""
     print('Start processing')
     try:
-        if isinstance(current_clipboard, str):
-            current_clipboard = current_clipboard.encode('utf-8', errors='replace').decode('utf-8')
+        if isinstance(text, str):
+            text = text.encode('utf-8', errors='replace').decode('utf-8')
         else:
-            current_clipboard = str(current_clipboard)
+            text = str(text)
 
-        prompt_manager = PromptManager()
-        prompt = prompt_manager.get_prompt_for_window(window_info)
-        
-        # No need to check for None prompt since we now have a default prompt
-
+        # Format the prompt with the text
         if "{text}" in prompt:
-            prompt_text = prompt.replace('{text}', current_clipboard)
+            prompt_text = prompt.replace('{text}', text)
         else:
-            prompt_text = f"{prompt}{current_clipboard}"
+            prompt_text = f"{prompt}{text}"
 
         print(prompt_text)
 
+        config_manager = ConfigManager()
         ai_service = config_manager.get_ai_service()
 
         if ai_service == "gemini":
@@ -528,11 +599,11 @@ def process_call(window_info, current_clipboard):
         else:
             print("Failed to generate text. Returning original content.")
             notification(title="Select it!", message="Failed to generate text.")
-            return current_clipboard
+            return text
 
     except Exception as e:
         print(f"Exception in processing: {str(e)}")
-        return current_clipboard
+        return text
 
 def monitor_command():
     """Start the clipboard monitoring service."""
@@ -603,6 +674,15 @@ def main():
     prompts_remove = prompts_subparsers.add_parser("remove", help="Remove a prompt")
     prompts_remove.add_argument("window", help="Window identifier (title or process name)")
 
+    # Prompts: add keyword trigger
+    prompts_add_keyword_trigger = prompts_subparsers.add_parser("add-keyword-trigger", help="Add a new keyword trigger prompt")
+    prompts_add_keyword_trigger.add_argument("keyword", help="The keyword to trigger the prompt")
+    prompts_add_keyword_trigger.add_argument("prompt", help="The prompt text to add")
+
+    # Prompts: remove keyword trigger
+    prompts_remove_keyword_trigger = prompts_subparsers.add_parser("remove-keyword-trigger", help="Remove a keyword trigger prompt")
+    prompts_remove_keyword_trigger.add_argument("keyword", help="The keyword to remove")
+
     # Web interface command
     web_parser = subparsers.add_parser("web", help="Start the web interface")
     web_parser.add_argument("--port", type=int, default=5000, help="Port to run the web interface on (default: 5000)")
@@ -643,6 +723,10 @@ def main():
             prompt_manager.add_prompt(args.window, args.prompt)
         elif args.prompts_action == "remove":
             prompt_manager.remove_prompt(args.window)
+        elif args.prompts_action == "add-keyword-trigger":
+            prompt_manager.add_keyword_trigger(args.keyword, args.prompt)
+        elif args.prompts_action == "remove-keyword-trigger":
+            prompt_manager.remove_keyword_trigger(args.keyword)
         else:
             prompt_manager.list_prompts()
     elif args.command == "web":
