@@ -5,18 +5,16 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <div class="card border-0 shadow mb-4">
+        <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div class="me-3 mb-2 mb-md-0">
-                        <h4 class="mb-1 d-flex align-items-center">
-                            <span class="icon-circle me-3">
-                                <i class="bi bi-clock-history"></i>
-                            </span>
-                            Call History
-                        </h4>
+                        <h4 class="mb-1 fw-light">Call History</h4>
                         <p class="text-muted mb-0 small">Your recent interactions with Select it!</p>
                     </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary ms-2 generate-summary-btn" id="generateSummaryBtn">
+                        Generate Summary
+                    </button>
                     <form action="{{ url_for('history') }}" method="get" class="d-flex align-items-center mb-2 mb-md-0">
                         <div class="time-filter-wrapper">
                             <label for="days-select" class="form-label mb-0 me-2 text-nowrap small fw-medium">Time Range:</label>
@@ -28,9 +26,6 @@
                             </select>
                         </div>
                     </form>
-                    <button type="button" class="btn btn-sm btn-outline-primary ms-2 generate-summary-btn" id="generateSummaryBtn">
-                        <i class="bi bi-bar-chart-line me-1"></i>Generate Day Summary
-                    </button>
                 </div>
             </div>
         </div>
@@ -42,25 +37,17 @@
                     <div class="card-header bg-white py-3 px-4 d-flex flex-wrap align-items-center border-0">
                         <div class="me-auto">
                             <div class="d-flex align-items-center mb-2">
-                                <div class="time-badge me-2">
-                                    <i class="bi bi-calendar-event"></i>
-                                </div>
-                                <span class="fw-medium text-dark">{{ entry.timestamp | datetime }}</span>
+                                <span class="fw-light text-dark">{{ entry.timestamp | datetime }}</span>
                             </div>
                             <div class="d-flex align-items-center flex-wrap">
                                 <div class="app-badge-container d-flex align-items-center me-3 mb-1">
-                                    <div class="app-badge me-2">
-                                        <i class="bi bi-window"></i>
-                                    </div>
-                                    <span class="text-truncate fw-medium">{{ entry.window.process_name }}</span>
+                                    <span class="text-truncate">{{ entry.window.process_name }}</span>
                                 </div>
                                 <span class="text-muted text-truncate window-title mb-1">{{ entry.window.title}}</span>
                             </div>
                         </div>
                         <div class="trigger-wrapper ms-2 mt-2 mt-md-0">
-                            <span class="trigger-badge">
-                                <i class="bi bi-magic me-1"></i>{{ entry.trigger_word }}
-                            </span>
+                            <span class="trigger-badge">{{ entry.trigger_word }}</span>
                         </div>
                     </div>
                     <div class="card-body p-4">
@@ -68,7 +55,6 @@
                             <div class="col-md-6">
                                 <div class="content-box input-box">
                                     <div class="content-header">
-                                        <i class="bi bi-arrow-right-circle me-2"></i>
                                         <span>Input</span>
                                     </div>
                                     <div class="content-body">
@@ -79,7 +65,6 @@
                             <div class="col-md-6">
                                 <div class="content-box output-box">
                                     <div class="content-header">
-                                        <i class="bi bi-arrow-left-circle me-2"></i>
                                         <span>Output</span>
                                     </div>
                                     <div class="content-body">
@@ -90,8 +75,8 @@
                         </div>
                     </div>
                     <div class="card-footer bg-white border-0 p-3 text-end">
-                        <button type="button" class="btn btn-sm btn-outline-primary copy-btn" onclick="copyToClipboard('{{ entry.output|replace("'", "\\'") }}')">
-                            <i class="bi bi-clipboard me-1"></i>Copy Output
+                        <button type="button" class="btn btn-sm btn-outline-primary copy-btn" data-output="{{ entry.output|replace('\n', '\\n')|replace('\"', '\\"')|replace("'", "\\'") }}">
+                            Copy Output
                         </button>
                     </div>
                 </div>
@@ -100,16 +85,13 @@
         {% else %}
             <div class="card border-0 shadow-sm empty-history-card">
                 <div class="card-body py-5 text-center">
-                    <div class="empty-state-icon mb-4">
-                        <i class="bi bi-clock-history"></i>
-                    </div>
-                    <h5 class="mb-3">No History Available Yet</h5>
+                    <h5 class="mb-3 fw-light">No History Available Yet</h5>
                     <p class="text-muted mb-4 px-md-5 mx-md-5">
                         Your interactions will appear here after you use Select it! with your trigger word.
                         <br>Try using your assistant to see your history populate!
                     </p>
                     <a href="{{ url_for('index') }}" class="btn btn-primary">
-                        <i class="bi bi-house-door me-1"></i>Back to Dashboard
+                        Back to Dashboard
                     </a>
                 </div>
             </div>
@@ -134,102 +116,103 @@
                 </div>
                 <div class="summary-content d-none">
                     <div class="row g-3">
-                        <div class="col-lg-6">
-                            <div class="card shadow-sm border-0 h-100">
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
                                 <div class="card-body p-3">
                                     <div class="d-flex align-items-center mb-3">
-                                        <div class="icon-circle primary-light me-3">
-                                            <i class="bi bi-info-circle text-primary"></i>
-                                        </div>
-                                        <h6 class="card-title mb-0">Summary Information</h6>
+                                        <h6 class="card-title mb-0 fw-light">Daily Metrics</h6>
                                     </div>
-                                    <div class="summary-info">
-                                        <div class="info-item d-flex align-items-center mb-3">
-                                            <div class="icon-badge me-3">
-                                                <i class="bi bi-calendar-event"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-muted small">Date</div>
-                                                <div class="fw-medium" id="summaryDate"></div>
-                                            </div>
+                                    
+                                    <!-- Summary Cards -->
+                                    <div class="summary-metrics">
+                                        <div class="metric-card">
+                                            <div class="metric-title">DATE</div>
+                                            <div class="metric-value" id="summaryDate"></div>
                                         </div>
-                                        <div class="info-item d-flex align-items-center mb-3">
-                                            <div class="icon-badge me-3">
-                                                <i class="bi bi-chat-dots"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-muted small">Total Interactions</div>
-                                                <div class="fw-medium" id="totalInteractions"></div>
-                                            </div>
+                                        <div class="metric-card">
+                                            <div class="metric-title">INTERACTIONS</div>
+                                            <div class="metric-value" id="totalInteractions"></div>
                                         </div>
-                                        <div class="info-item d-flex align-items-center">
-                                            <div class="icon-badge me-3">
-                                                <i class="bi bi-clock"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-muted small">Busiest Hour</div>
-                                                <div class="fw-medium" id="busiestHour"></div>
-                                            </div>
+                                        <div class="metric-card">
+                                            <div class="metric-title">PEAK HOUR</div>
+                                            <div class="metric-value" id="busiestHour"></div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Content Length Stats -->
+                                    <div class="content-length-section">
+                                        <div class="length-title">Content Length</div>
+                                        <div class="length-item">
+                                            <div class="length-label">Input</div>
+                                            <div class="length-bar-wrapper">
+                                                <div class="length-bar input-bar" id="inputLengthBar"></div>
+                                                <div class="length-value" id="avgInputLengthValue">0</div>
+                                            </div>
+                                        </div>
+                                        <div class="length-item">
+                                            <div class="length-label">Output</div>
+                                            <div class="length-bar-wrapper">
+                                                <div class="length-bar output-bar" id="outputLengthBar"></div>
+                                                <div class="length-value" id="avgOutputLengthValue">0</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center mt-3 mb-2">
+                                        <h6 class="card-title mb-0 fw-light">Activity by Hour</h6>
+                                    </div>
+                                    <div id="hourChart" class="hour-chart"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
-                            <div class="card shadow-sm border-0 h-100">
+                        
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
                                 <div class="card-body p-3">
                                     <div class="d-flex align-items-center mb-3">
-                                        <div class="icon-circle primary-light me-3">
-                                            <i class="bi bi-rulers text-primary"></i>
-                                        </div>
-                                        <h6 class="card-title mb-0">Content Length Stats</h6>
-                                    </div>
-                                    <div class="length-stats">
-                                        <div class="stat-item mb-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="text-muted small">Average Input Length</span>
-                                                <span class="badge bg-light text-dark rounded-pill px-2" id="avgInputLengthBadge">0</span>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-primary" id="inputLengthProgress" role="progressbar" style="width: 0%"></div>
-                                            </div>
-                                        </div>
-                                        <div class="stat-item">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <span class="text-muted small">Average Output Length</span>
-                                                <span class="badge bg-light text-dark rounded-pill px-2" id="avgOutputLengthBadge">0</span>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-success" id="outputLengthProgress" role="progressbar" style="width: 0%"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="card shadow-sm border-0 h-100">
-                                <div class="card-body p-3">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="icon-circle primary-light me-3">
-                                            <i class="bi bi-window text-primary"></i>
-                                        </div>
-                                        <h6 class="card-title mb-0">Most Used Applications</h6>
+                                        <h6 class="card-title mb-0 fw-light">Most Used Applications</h6>
                                     </div>
                                     <div id="appsList" class="apps-list"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
-                            <div class="card shadow-sm border-0 h-100">
+                        
+                        <div class="col-12">
+                            <div class="card shadow-sm border-0">
                                 <div class="card-body p-3">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="icon-circle primary-light me-3">
-                                            <i class="bi bi-bar-chart text-primary"></i>
-                                        </div>
-                                        <h6 class="card-title mb-0">Activity by Hour</h6>
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="card-title mb-0 fw-light">AI Analysis</h6>
+                                        <button type="button" class="btn btn-sm btn-primary" id="analyzeWithAiBtn">
+                                            Analyze All Interactions
+                                        </button>
                                     </div>
-                                    <div id="hourChart" class="hour-chart"></div>
+                                    
+                                    <div class="ai-analysis-info alert alert-info d-flex align-items-start mb-3">
+                                        <div>
+                                            This will send all interactions (input text, output text, and application data) from this day to the AI for comprehensive analysis.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ai-analysis-loading text-center py-3 d-none">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0">Analyzing all interactions with AI...</p>
+                                    </div>
+                                    
+                                    <div class="ai-analysis-content d-none">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div id="aiAnalysisText" class="white-space-pre-wrap"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="ai-analysis-error d-none">
+                                        <div class="alert alert-warning">
+                                            <span id="aiErrorMessage">Unable to generate AI analysis.</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -237,49 +220,10 @@
                 </div>
                 <div class="summary-error d-none">
                     <div class="alert alert-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
                         <span id="errorMessage">Error generating summary.</span>
                     </div>
                 </div>
                 
-                <!-- AI Analysis Section -->
-                <div class="ai-analysis-section mt-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0"><i class="bi bi-robot me-2"></i>AI Analysis</h6>
-                        <button type="button" class="btn btn-sm btn-primary" id="analyzeWithAiBtn">
-                            <i class="bi bi-magic me-1"></i>Analyze All Interactions
-                        </button>
-                    </div>
-                    
-                    <div class="ai-analysis-info alert alert-info d-flex align-items-start mb-3">
-                        <i class="bi bi-info-circle me-2 mt-1"></i>
-                        <div>
-                            This will send all interactions (input text, output text, and application data) from this day to the AI for comprehensive analysis.
-                        </div>
-                    </div>
-                    
-                    <div class="ai-analysis-loading text-center py-3 d-none">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p class="mt-2 mb-0">Analyzing all interactions with AI...</p>
-                    </div>
-                    
-                    <div class="ai-analysis-content d-none">
-                        <div class="card">
-                            <div class="card-body">
-                                <div id="aiAnalysisText" class="white-space-pre-wrap"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="ai-analysis-error d-none">
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-circle me-2"></i>
-                            <span id="aiErrorMessage">Unable to generate AI analysis.</span>
-                        </div>
-                    </div>
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -295,8 +239,8 @@
     :root {
         --history-primary: var(--primary-color);
         --history-secondary: var(--accent-color);
-        --history-success: var(--success-color);
-        --card-border-radius: 14px;
+        --card-border-radius: 8px;
+        --box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     
     /* Container styling */
@@ -309,46 +253,38 @@
     }
     
     .history-container::-webkit-scrollbar {
-        width: 6px;
+        width: 4px;
     }
     
     .history-container::-webkit-scrollbar-track {
         background: #f8f9fa;
-        border-radius: 10px;
+        border-radius: 8px;
     }
     
     .history-container::-webkit-scrollbar-thumb {
-        background: #d1d1d1;
-        border-radius: 10px;
+        background: #e0e0e0;
+        border-radius: 8px;
     }
     
     .history-container::-webkit-scrollbar-thumb:hover {
-        background: #bbb;
+        background: #d0d0d0;
     }
     
     /* Card styling */
     .history-card {
-        transition: all 0.25s ease;
+        transition: all 0.2s ease;
         border-radius: var(--card-border-radius) !important;
         position: relative;
+        box-shadow: var(--box-shadow) !important;
+    }
+    
+    .history-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08) !important;
     }
     
     .card-header, .card-body, .card-footer {
         position: relative;
         z-index: 1;
-    }
-    
-    /* Badge styling */
-    .icon-circle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--history-primary), var(--history-secondary));
-        color: white;
-        border-radius: 50%;
-        font-size: 18px;
     }
     
     .time-filter-wrapper {
@@ -359,280 +295,598 @@
         border-radius: 8px;
     }
     
-    .time-badge, .app-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        font-size: 12px;
-    }
-    
-    .time-badge {
-        background-color: rgba(67, 97, 238, 0.1);
-        color: var(--history-primary);
-    }
-    
-    .app-badge {
-        background-color: rgba(76, 201, 240, 0.1);
-        color: var(--history-secondary);
-    }
-    
     .app-badge-container {
         padding: 4px 0;
     }
     
-    .window-title {
-        max-width: 250px;
-    }
-    
     .trigger-badge {
-        display: inline-flex;
-        align-items: center;
-        background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+        display: inline-block;
+        padding: 4px 10px;
+        background-color: rgba(var(--primary-color-rgb), 0.08);
         color: var(--history-primary);
         border-radius: 20px;
-        font-weight: 500;
-        font-size: 85%;
-        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.3px;
     }
     
     .trigger-wrapper {
-        position: relative;
+        display: inline-block;
     }
     
     /* Content boxes */
     .content-box {
-        border-radius: 14px;
         height: 100%;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        transition: all 0.2s ease;
-    }
-    
-    .content-box:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .input-box {
-        border-left: 3px solid var(--history-primary);
-    }
-    
-    .output-box {
-        border-left: 3px solid var(--history-success);
+        border: 1px solid #eee;
+        border-radius: 6px;
+        overflow: hidden;
     }
     
     .content-header {
-        font-weight: 500;
-        padding: 10px 15px;
-        border-top-left-radius: 14px;
-        border-top-right-radius: 14px;
+        padding: 10px 16px;
         background-color: #f8f9fa;
-        display: flex;
-        align-items: center;
-        color: #444;
-        font-size: 14px;
-    }
-    
-    .input-box .content-header i {
-        color: var(--history-primary);
-    }
-    
-    .output-box .content-header i {
-        color: var(--history-success);
+        border-bottom: 1px solid #eee;
+        font-weight: 400;
+        font-size: 13px;
+        color: #666;
     }
     
     .content-body {
-        padding: 15px 18px;
-        background-color: #f8f9fa;
-        border-bottom-left-radius: 14px;
-        border-bottom-right-radius: 14px;
+        padding: 15px 16px;
+        background-color: #fafafa;
         flex-grow: 1;
-        overflow: auto;
+        overflow-x: auto;
     }
     
-    /* Text styling */
+    /* Pre formatting */
     pre {
-        font-family: var(--bs-font-sans-serif);
-        font-size: 0.9rem;
-        background-color: transparent;
-        margin-bottom: 0;
+        margin: 0;
         white-space: pre-wrap;
-        max-height: 180px;
+        word-break: break-word;
+        font-size: 13px;
+        color: #444;
+        max-height: 300px;
         overflow-y: auto;
-        color: #333;
+        font-family: 'Consolas', monospace;
+        line-height: 1.5;
     }
     
-    .fw-medium {
+    /* Github-style Activity Palette - Grid Layout */
+    .hour-chart {
+        padding: 0;
+        margin: 0;
+    }
+    
+    .hour-palette {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap: 2px;
+        max-width: fit-content;
+        margin: 10px auto;
+        border-radius: 3px;
+    }
+    
+    .hour-cell-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .hour-cell {
+        width: 34px;
+        height: 34px;
+        margin: 0;
+        border-radius: 2px;
+        background-color: #ebedf0;
+        position: relative;
+        transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .hour-cell:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        z-index: 5;
+        border-radius: 2px;
+    }
+    
+    .hour-cell.level-0 {
+        background-color: #ebedf0;
+    }
+    
+    .hour-cell.level-1 {
+        background-color: #9be9a8;
+    }
+    
+    .hour-cell.level-2 {
+        background-color: #40c463;
+    }
+    
+    .hour-cell.level-3 {
+        background-color: #30a14e;
+    }
+    
+    .hour-cell.level-4 {
+        background-color: #216e39;
+    }
+    
+    .hour-label {
+        font-size: 9px;
+        color: #777;
+        position: absolute;
+        bottom: 2px;
+        opacity: 0.7;
+    }
+    
+    .hour-cell.level-3 .hour-label,
+    .hour-cell.level-4 .hour-label {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    /* Pulsing animation for cells with activity */
+    @keyframes subtle-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .hour-cell.level-2, 
+    .hour-cell.level-3, 
+    .hour-cell.level-4 {
+        animation: subtle-pulse 3s infinite ease-in-out;
+    }
+    
+    .hour-count {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.7);
+        font-weight: 600;
+        display: none;
+    }
+    
+    .hour-cell:hover .hour-count {
+        display: block;
+    }
+    
+    .hour-cell.level-3 .hour-count,
+    .hour-cell.level-4 .hour-count {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* App usage */
+    .app-usage-item {
+        margin-bottom: 12px;
+    }
+    
+    .app-usage-name {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        color: #555;
+    }
+    
+    .app-usage-bar {
+        height: 5px;
+        background-color: rgba(var(--primary-color-rgb), 0.6);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+        width: 0%;
+    }
+    
+    .apps-list {
+        padding: 5px 0;
+    }
+    
+    .app-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        position: relative;
+    }
+    
+    .app-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .app-icon-logo {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background-color: rgb(var(--primary-color-rgb));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 12px;
+        flex-shrink: 0;
+        margin-right: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .app-details {
+        flex-grow: 1;
+        position: relative;
+    }
+    
+    .app-name-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    
+    .app-name {
+        font-size: 12px;
+        font-weight: 500;
+        color: #333;
+        max-width: 70%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .app-count {
+        font-size: 11px;
+        background: #f0f0f0;
+        color: #555;
+        padding: 1px 8px;
+        border-radius: 12px;
         font-weight: 500;
     }
     
-    /* Empty state */
-    .empty-history-card {
-        border-radius: var(--card-border-radius) !important;
+    .app-bar-bg {
+        height: 4px;
+        background-color: #f0f0f0;
+        border-radius: 2px;
+        width: 100%;
+        overflow: hidden;
     }
     
-    .empty-state-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--history-primary);
-        font-size: 32px;
-        margin-bottom: 16px;
+    .app-bar {
+        height: 100%;
+        background-color: rgb(var(--primary-color-rgb));
+        border-radius: 2px;
+        width: 0;
+        transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    /* App icon colors - cycle through different colors */
+    .app-icon-logo:nth-child(5n+1) {
+        background-color: #4285F4;
+    }
+    
+    .app-icon-logo:nth-child(5n+2) {
+        background-color: #EA4335;
+    }
+    
+    .app-icon-logo:nth-child(5n+3) {
+        background-color: #FBBC05;
+    }
+    
+    .app-icon-logo:nth-child(5n+4) {
+        background-color: #34A853;
+    }
+    
+    .app-icon-logo:nth-child(5n+5) {
+        background-color: #673AB7;
     }
     
     /* Copy button */
     .copy-btn {
         border-radius: 20px;
-        font-size: 0.85rem;
+        font-size: 13px;
         padding: 4px 12px;
         transition: all 0.2s ease;
+        border-color: #e0e0e0;
+        color: #666;
+        font-weight: 400;
     }
     
     .copy-btn:hover {
         background-color: var(--history-primary);
         color: white;
+        border-color: var(--history-primary);
     }
     
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .icon-circle {
-            width: 35px;
-            height: 35px;
-            font-size: 16px;
-        }
-        
-        .window-title {
-            max-width: 200px;
-        }
-        
-        .content-body {
-            padding: 12px 14px;
-        }
+    /* Stat items */
+    .info-item {
+        padding: 6px 0;
     }
     
-    /* Day Summary styles */
-    .apps-list {
-        margin-top: 15px;
+    .info-card {
+        padding: 10px 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        transition: all 0.2s ease;
     }
     
-    .app-usage-item {
-        display: flex;
-        margin-bottom: 12px;
-        align-items: center;
+    .info-card:hover {
+        background-color: #f0f2f5;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
     
-    .app-usage-name {
-        flex: 1;
-        margin-right: 10px;
+    .info-title {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+        letter-spacing: 0.3px;
+    }
+    
+    .info-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .stat-item .progress {
+        height: 5px;
+        border-radius: 3px;
+        background-color: rgba(0,0,0,0.05);
+    }
+    
+    .summary-info .text-muted, .stat-item .text-muted {
+        font-size: 12px;
+        letter-spacing: 0.3px;
+    }
+    
+    /* Button styles */
+    .btn-sm {
         font-size: 13px;
+        padding: 5px 12px;
+        border-radius: 20px;
     }
     
-    .app-usage-bar {
-        background-color: var(--history-primary-light);
-        height: 8px;
-        border-radius: 4px;
-        transition: width 0.5s ease-in-out;
+    #generateSummaryBtn {
+        white-space: nowrap;
+        letter-spacing: 0.3px;
     }
     
-    .hour-chart {
-        margin-top: 15px;
-        height: 160px;
+    /* Modal content */
+    .modal-content {
+        border-radius: 8px;
+        border: none;
     }
     
-    .hour-bar-container {
+    .modal-header {
+        border-bottom-color: #eee;
+    }
+    
+    .modal-footer {
+        border-top-color: #eee;
+    }
+    
+    /* Styling for badge counts */
+    .badge {
+        font-weight: 400;
+        letter-spacing: 0.3px;
+    }
+    
+    /* Card title styling */
+    .card .card-title {
+        letter-spacing: 0.3px;
+    }
+    
+    /* AI Analysis info */
+    .ai-analysis-info {
+        background-color: rgba(var(--primary-color-rgb), 0.05);
+        border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 13px;
+        color: #666;
+    }
+    
+    /* Summary & Stats Styles - Ultra Compact */
+    .summary-row {
         display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        height: 120px;
+        flex-wrap: wrap;
+        gap: 8px;
     }
     
-    .hour-bar-wrapper {
+    .stat-card {
+        flex: 1;
+        min-width: 80px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        padding: 8px 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    
+    .stat-title {
+        font-size: 9px;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 3px;
+        font-weight: 500;
+    }
+    
+    .stat-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    /* Combined Length Stats */
+    .length-stats-container {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 12px;
+        background-color: #f8f9fa;
+        border-radius: 6px;
+        padding: 8px 10px;
+        margin-top: 10px;
     }
     
-    .hour-bar {
-        width: 8px;
-        background-color: rgba(var(--primary-color-rgb), 0.6);
-        border-radius: 4px 4px 0 0;
-        transition: height 0.5s ease-in-out;
+    .length-labels {
+        width: 30%;
     }
     
-    .hour-bar:hover {
-        background-color: var(--history-primary);
-        cursor: pointer;
+    .length-values {
+        width: 15%;
+        text-align: center;
     }
     
-    .hour-bar.busiest-hour {
-        background-color: var(--accent-color);
+    .length-bars {
+        width: 55%;
+        padding-top: 18px;
         position: relative;
     }
     
-    .hour-bar.busiest-hour:after {
-        content: '';
-        position: absolute;
-        top: -5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 5px;
-        height: 5px;
-        background-color: var(--accent-color);
-        border-radius: 50%;
-    }
-    
-    .hour-label {
+    .length-label {
         font-size: 9px;
-        color: #666;
-        margin-top: 5px;
-        transform: rotate(-45deg);
-        white-space: nowrap;
+        color: #777;
+        padding: 4px 0;
     }
     
-    .generate-summary-btn {
-        white-space: nowrap;
+    .length-value {
+        font-size: 10px;
+        font-weight: 500;
+        color: #555;
+        padding: 4px 0;
     }
     
-    /* Icon styling */
-    .icon-circle {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
+    .length-bar-container {
+        height: 6px;
+        margin: 7px 0;
+        background-color: #eee;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    
+    .length-bar {
+        height: 100%;
+        transition: width 0.8s ease;
+    }
+    
+    .input-bar {
+        background-color: #4285F4;
+    }
+    
+    .output-bar {
+        background-color: #34A853;  
+    }
+    
+    /* Summary Cards - Modern Minimal Design */
+    .summary-metrics {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(var(--primary-color-rgb), 0.1);
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
     }
     
-    .icon-circle.primary-light {
-        background-color: rgba(var(--primary-color-rgb), 0.1);
-    }
-    
-    .icon-badge {
-        width: 32px;
-        height: 32px;
+    .metric-card {
+        flex: 1;
+        min-width: 75px;
+        background-color: white;
         border-radius: 8px;
+        border-left: 3px solid rgb(var(--primary-color-rgb));
+        padding: 6px 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .metric-title {
+        font-size: 9px;
+        color: #888;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+    
+    .metric-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    /* Content Length Section */
+    .content-length-section {
+        background-color: white;
+        border-radius: 8px;
+        padding: 8px 12px 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .length-title {
+        font-size: 9px;
+        color: #888;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+    
+    .length-item {
         display: flex;
         align-items: center;
-        justify-content: center;
-        background-color: var(--bs-light);
-        color: var(--history-primary);
+        margin-bottom: 6px;
+    }
+    
+    .length-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .length-label {
+        width: 50px;
+        font-size: 9px;
+        color: #777;
+        margin-right: 8px;
+    }
+    
+    .length-bar-wrapper {
+        flex-grow: 1;
+        height: 4px;
+        background-color: #f0f0f0;
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .length-value {
+        position: absolute;
+        right: -24px;
+        top: -4px;
+        font-size: 9px;
+        color: #555;
+        font-weight: 500;
+        width: 26px;
+        text-align: right;
+    }
+    
+    .length-bar {
+        height: 100%;
+        transition: width 0.8s ease;
+    }
+    
+    .input-bar {
+        background-color: #4285F4;
+    }
+    
+    .output-bar {
+        background-color: #34A853;
     }
 </style>
 
 <script>
-    function copyToClipboard(text) {
+    // Set up event listeners for all copy buttons after the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function(event) {
+                const text = this.getAttribute('data-output');
+                copyToClipboard(text, event.target);
+            });
+        });
+    });
+
+    function copyToClipboard(text, element) {
         navigator.clipboard.writeText(text).then(function() {
-            // Show feedback (could add a toast notification here)
-            const copyBtn = event.target.closest('.copy-btn');
+            // Show feedback
+            const copyBtn = element.closest('.copy-btn');
             const originalText = copyBtn.innerHTML;
             
             copyBtn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
@@ -709,11 +963,112 @@
         // Store the current summary data for AI analysis
         currentSummaryData = data;
         
-        // Basic info
-        document.getElementById('summaryDate').textContent = data.date;
+        // Format date nicely - just month and day for compactness
+        const dateObj = new Date(data.date);
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = monthNames[dateObj.getMonth()];
+        const day = dateObj.getDate();
+        document.getElementById('summaryDate').textContent = `${month} ${day}`;
+        
+        // Add total interactions with formatting
         document.getElementById('totalInteractions').textContent = data.total_interactions;
-        document.getElementById('avgInputLengthBadge').textContent = data.average_input_length;
-        document.getElementById('avgOutputLengthBadge').textContent = data.average_output_length;
+        
+        // Set content length values
+        document.getElementById('avgInputLengthValue').textContent = Math.round(data.average_input_length);
+        document.getElementById('avgOutputLengthValue').textContent = Math.round(data.average_output_length);
+        
+        // Format busiest hour with AM/PM
+        if (data.busiest_hour !== undefined && data.busiest_hour !== null) {
+            const hour = parseInt(data.busiest_hour);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12; // Convert to 12-hour format
+            document.getElementById('busiestHour').textContent = `${hour12} ${ampm}`;
+        } else {
+            document.getElementById('busiestHour').textContent = 'N/A';
+        }
+        
+        // Populate app usage data with new list layout
+        const appsListEl = document.getElementById('appsList');
+        appsListEl.innerHTML = '';
+        appsListEl.className = 'apps-list';
+        
+        // Find the app with the highest count to scale the bars
+        const maxAppUsage = Object.values(data.apps).length > 0 ? 
+            Math.max(...Object.values(data.apps)) : 0;
+        
+        // Sort apps by usage count (descending)
+        const appEntries = Object.entries(data.apps)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5); // Show top 5 apps
+        
+        if (appEntries.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.className = 'text-muted small text-center py-3';
+            emptyMessage.textContent = 'No application data available';
+            appsListEl.appendChild(emptyMessage);
+            return;
+        }
+        
+        // Add each app with its usage stats in elegant list format
+        appEntries.forEach(([appName, count], index) => {
+            const percentage = maxAppUsage > 0 ? 
+                Math.floor((count / maxAppUsage) * 100) : 0;
+            
+            // Create app item
+            const appItem = document.createElement('div');
+            appItem.className = 'app-item';
+            
+            // Create app icon with first letter
+            const appIcon = document.createElement('div');
+            appIcon.className = 'app-icon-logo';
+            appIcon.textContent = appName.charAt(0).toUpperCase();
+            
+            // Create app details container
+            const appDetails = document.createElement('div');
+            appDetails.className = 'app-details';
+            
+            // Create name row (app name + count)
+            const nameRow = document.createElement('div');
+            nameRow.className = 'app-name-row';
+            
+            // Create app name
+            const appNameEl = document.createElement('div');
+            appNameEl.className = 'app-name';
+            appNameEl.textContent = appName;
+            
+            // Create app count
+            const appCount = document.createElement('div');
+            appCount.className = 'app-count';
+            appCount.textContent = count;
+            
+            // Create bar background
+            const barBg = document.createElement('div');
+            barBg.className = 'app-bar-bg';
+            
+            // Create usage bar
+            const bar = document.createElement('div');
+            bar.className = 'app-bar';
+            
+            // Assemble elements
+            nameRow.appendChild(appNameEl);
+            nameRow.appendChild(appCount);
+            barBg.appendChild(bar);
+            appDetails.appendChild(nameRow);
+            appDetails.appendChild(barBg);
+            appItem.appendChild(appIcon);
+            appItem.appendChild(appDetails);
+            
+            // Add to list
+            appsListEl.appendChild(appItem);
+            
+            // Staggered animation for bars
+            setTimeout(() => {
+                bar.style.width = `${percentage}%`;
+            }, 200 + (index * 100));
+        });
+        
+        // Populate hour chart
+        populateHourChart(data.hour_distribution || {});
         
         // Calculate progress bar values - scale appropriately based on max length
         // We'll consider anything over 1000 chars as 100%
@@ -723,104 +1078,78 @@
         
         // Add animation delay to make the transition visible
         setTimeout(() => {
-            document.getElementById('inputLengthProgress').style.width = `${inputLengthProgress}%`;
-            document.getElementById('outputLengthProgress').style.width = `${outputLengthProgress}%`;
+            document.getElementById('inputLengthBar').style.width = `${inputLengthProgress}%`;
+            document.getElementById('outputLengthBar').style.width = `${outputLengthProgress}%`;
         }, 200);
-        
-        // Busiest hour (formatted as 24-hour)
-        if (data.busiest_hour !== null) {
-            const hour = data.busiest_hour;
-            document.getElementById('busiestHour').textContent = `${hour}:00 - ${hour}:59`;
-        } else {
-            document.getElementById('busiestHour').textContent = 'N/A';
-        }
-        
-        // Apps usage
-        const appsListEl = document.getElementById('appsList');
-        appsListEl.innerHTML = '';
-        
-        // Get max usage value for scaling
-        const maxAppUsage = Object.values(data.apps).length > 0 ? 
-            Math.max(...Object.values(data.apps)) : 0;
-        
-        // Add app usage items (limit to top 5)
-        const appEntries = Object.entries(data.apps).slice(0, 5);
-        
-        // Add a slight delay for each app bar to create a staggered animation
-        appEntries.forEach(([appName, count], index) => {
-            const percentage = maxAppUsage > 0 ? 
-                Math.floor((count / maxAppUsage) * 100) : 0;
-            
-            const appItem = document.createElement('div');
-            appItem.className = 'app-usage-item';
-            appItem.innerHTML = `
-                <div class="app-usage-name">${appName} <span class="badge bg-light text-dark rounded-pill ms-1">${count}</span></div>
-                <div class="app-usage-bar" style="width: 0%"></div>
-            `;
-            appsListEl.appendChild(appItem);
-            
-            // Staggered animation for bars
-            setTimeout(() => {
-                appItem.querySelector('.app-usage-bar').style.width = `${percentage}%`;
-            }, 200 + (index * 100));
-        });
-        
-        // Hour distribution chart
+    }
+    
+    function populateHourChart(hourData) {
         const hourChartEl = document.getElementById('hourChart');
         hourChartEl.innerHTML = '';
         
-        // Create hours container
-        const hoursContainer = document.createElement('div');
-        hoursContainer.className = 'hour-bar-container';
+        // Create container
+        const container = document.createElement('div');
+        container.className = 'hour-palette';
         
-        // Get max hour count for scaling
-        const hourValues = Object.values(data.hour_distribution);
-        const maxHourCount = hourValues.length > 0 ? 
-            Math.max(...hourValues) : 0;
+        // Find max value for scaling
+        const hourValues = Object.values(hourData);
+        const maxValue = hourValues.length > 0 ? Math.max(...hourValues) : 0;
         
-        // Add hour bars (showing all 24 hours)
-        for (let i = 0; i < 24; i++) {
-            const count = data.hour_distribution[i] || 0;
-            const percentage = maxHourCount > 0 ? 
-                Math.floor((count / maxHourCount) * 100) : 0;
-            
-            // Format hour label for better readability    
-            const hourLabel = i < 10 ? `0${i}:00` : `${i}:00`;
-            
-            const hourWrapper = document.createElement('div');
-            hourWrapper.className = 'hour-bar-wrapper';
-            
-            const hourBar = document.createElement('div');
-            hourBar.className = 'hour-bar';
-            
-            // Add an initial height for animation
-            hourBar.style.height = '1px';
-            
-            // Add tooltip with count information
-            hourBar.setAttribute('data-bs-toggle', 'tooltip');
-            hourBar.setAttribute('data-bs-placement', 'top');
-            hourBar.setAttribute('title', `${count} interaction${count !== 1 ? 's' : ''}`);
-            
-            // Add active hour highlight
-            if (data.busiest_hour === i) {
-                hourBar.classList.add('busiest-hour');
+        // Create grid layout
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < 6; col++) {
+                const hour = row * 6 + col; // Calculate hour (0-23)
+                const count = hourData[hour] || 0;
+                
+                // Create cell wrapper
+                const cellWrapper = document.createElement('div');
+                cellWrapper.className = 'hour-cell-wrapper';
+                
+                // Create the cell
+                const cell = document.createElement('div');
+                cell.className = 'hour-cell';
+                
+                // Determine activity level (0-4)
+                let level = 0;
+                if (count > 0) {
+                    if (maxValue <= 4) {
+                        // If max is 4 or less, level = count
+                        level = count;
+                    } else {
+                        // Otherwise scale to 4 levels
+                        level = Math.ceil((count / maxValue) * 4);
+                    }
+                }
+                
+                // Add level class
+                cell.classList.add('level-' + level);
+                
+                // Add count inside the cell (visible on hover)
+                const countEl = document.createElement('div');
+                countEl.className = 'hour-count';
+                countEl.textContent = count;
+                cell.appendChild(countEl);
+                
+                // Create hour label
+                const hourLabel = document.createElement('div');
+                hourLabel.className = 'hour-label';
+                hourLabel.textContent = `${hour < 10 ? '0' + hour : hour}`;
+                cell.appendChild(hourLabel);
+                
+                // Add tooltip
+                cell.setAttribute('data-bs-toggle', 'tooltip');
+                cell.setAttribute('data-bs-placement', 'top');
+                cell.setAttribute('title', `${hour < 10 ? '0' + hour : hour}:00: ${count} interaction${count !== 1 ? 's' : ''}`);
+                
+                // Add cell to wrapper
+                cellWrapper.appendChild(cell);
+                
+                // Add to container
+                container.appendChild(cellWrapper);
             }
-            
-            const hourLabelEl = document.createElement('div');
-            hourLabelEl.className = 'hour-label';
-            hourLabelEl.textContent = hourLabel;
-            
-            hourWrapper.appendChild(hourBar);
-            hourWrapper.appendChild(hourLabelEl);
-            hoursContainer.appendChild(hourWrapper);
-            
-            // Staggered animation for hour bars
-            setTimeout(() => {
-                hourBar.style.height = percentage > 0 ? `${percentage}%` : '1px';
-            }, 200 + (i * 30)); // Slight delay for each bar
         }
         
-        hourChartEl.appendChild(hoursContainer);
+        hourChartEl.appendChild(container);
         
         // Initialize tooltips
         const tooltipTriggerList = [].slice.call(hourChartEl.querySelectorAll('[data-bs-toggle="tooltip"]'));
